@@ -15,7 +15,12 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Svg, { Path } from "react-native-svg";
-import { EyeIcon, EyeOffIcon, FacebookIcon, GoogleIcon } from "../components/SvgIcons";
+import {
+  EyeIcon,
+  EyeOffIcon,
+  FacebookIcon,
+  GoogleIcon,
+} from "../components/SvgIcons";
 import authService from "../services/authService";
 
 const { width, height } = Dimensions.get("window");
@@ -116,7 +121,9 @@ const LoginScreen = ({ navigation }) => {
               preserveAspectRatio="none"
             >
               <Path
-                d={`M0,40 Q${width/4},20 ${width/2},40 T${width},40 L${width},120 L0,120 Z`}
+                d={`M0,40 Q${width / 4},20 ${
+                  width / 2
+                },40 T${width},40 L${width},120 L0,120 Z`}
                 fill="white"
               />
             </Svg>
@@ -133,7 +140,12 @@ const LoginScreen = ({ navigation }) => {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
-                <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.email && styles.inputError,
+                  ]}
+                >
                   <RNTextInput
                     testID="email-input"
                     style={styles.input}
@@ -152,14 +164,20 @@ const LoginScreen = ({ navigation }) => {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Password</Text>
-                <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.password && styles.inputError,
+                  ]}
+                >
                   <RNTextInput
                     testID="password-input"
                     style={styles.input}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
-                      if (errors.password) setErrors({ ...errors, password: null });
+                      if (errors.password)
+                        setErrors({ ...errors, password: null });
                     }}
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"
@@ -169,7 +187,11 @@ const LoginScreen = ({ navigation }) => {
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.eyeIcon}
                   >
-                    {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+                    {showPassword ? (
+                      <EyeOffIcon size={20} />
+                    ) : (
+                      <EyeIcon size={20} />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -179,13 +201,24 @@ const LoginScreen = ({ navigation }) => {
                   style={styles.rememberContainer}
                   onPress={() => setRememberMe(!rememberMe)}
                 >
-                  <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                    {rememberMe && <Icon name="check" size={14} color="white" />}
+                  <View
+                    style={[
+                      styles.checkbox,
+                      rememberMe && styles.checkboxChecked,
+                    ]}
+                  >
+                    {rememberMe && (
+                      <Icon name="check" size={14} color="white" />
+                    )}
                   </View>
                   <Text style={styles.rememberText}>Remember me</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => Alert.alert("Info", "Password recovery coming soon!")}>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert("Info", "Password recovery coming soon!")
+                  }
+                >
                   <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
@@ -231,10 +264,10 @@ const LoginScreen = ({ navigation }) => {
 
               <Text style={styles.footerText}>
                 Already a member?
-                <Text
-                  style={styles.footerLink}
-                  onPress={() => handleLogin()}
-                > Login</Text>
+                <Text style={styles.footerLink} onPress={() => handleLogin()}>
+                  {" "}
+                  Login
+                </Text>
               </Text>
             </Animated.View>
           </ScrollView>
