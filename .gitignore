@@ -101,3 +101,83 @@ Thumbs.db
 
 # Claude settings (local only)
 .claude/settings.local.json
+
+# Additional unnecessary files
+*.tmp
+*.temp
+.cache/
+.eslintcache
+.stylelintcache
+*.tgz
+*.tar.gz
+.yarn-integrity
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Package manager lock files (keep only one)
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Temporary folders
+tmp/
+temp/
+
+# JDK installations
+jdk-17.0.2/
+
+# Android SDK
+android-sdk/
+
+# Archive files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+
+# Downloaded installers and packages
+commandlinetools-linux-*.zip
+openjdk-*.tar.gz
+
+# Screenshots and temporary images
+*.png
+*.jpg
+*.jpeg
+*.gif
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.jpeg
+!assets/**/*.gif
+
+# Large binary files
+*.apk
+*.aab
+*.ipa
