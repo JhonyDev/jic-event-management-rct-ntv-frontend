@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Card, Title, Paragraph, Button, Chip } from 'react-native-paper';
 import eventService from '../services/eventService';
@@ -14,6 +15,7 @@ const EventDetailScreen = ({ route, navigation }) => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchEventDetails();
@@ -28,7 +30,13 @@ const EventDetailScreen = ({ route, navigation }) => {
       Alert.alert('Error', 'Failed to load event details');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchEventDetails();
   };
 
   const handleRegister = async () => {
@@ -66,7 +74,17 @@ const EventDetailScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#4A6CF7']}
+          tintColor="#4A6CF7"
+        />
+      }
+    >
       <Card style={styles.card}>
         <Card.Content>
           <Title style={styles.title}>{event.title}</Title>

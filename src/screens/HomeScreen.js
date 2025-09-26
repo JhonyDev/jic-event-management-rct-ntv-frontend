@@ -1,141 +1,325 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   StyleSheet,
   RefreshControl,
+  SafeAreaView,
+  StatusBar,
+  Alert,
   TouchableOpacity,
-} from 'react-native';
-import { Card, Title, Paragraph, Button, FAB } from 'react-native-paper';
-import eventService from '../services/eventService';
+} from "react-native";
+import {
+  WelcomeCard,
+  QuickActionCard,
+  EventCard,
+  LoadingCard,
+} from "../components/Cards";
+import {
+  QRScanIcon,
+  EventsIcon,
+  ProfileIcon,
+  CalendarIcon,
+} from "../components/SvgIcons";
+import eventService from "../services/eventService";
+import QRScannerService from "../utils/qrScanner";
+import profileService from "../services/profileService";
 
 const HomeScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     fetchEvents();
+    loadUserProfile();
   }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const userData = await profileService.getProfile();
+      setUser(userData);
+    } catch (error) {
+      console.log("No user logged in or error fetching profile");
+      setUser(null);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
       const data = await eventService.getEvents();
-      setEvents(data);
+      // Ensure data is an array, default to empty array if not
+      const eventsArray = Array.isArray(data) ? data : data?.results || [];
+      setEvents(eventsArray);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
+      setEvents([]); // Set empty array on error
+      Alert.alert("Error", "Failed to load events. Pull down to retry.");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchEvents();
+    await Promise.all([fetchEvents(), loadUserProfile()]);
   };
 
-  const renderEvent = ({ item }) => (
-    <Card style={styles.card} onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}>
-      <Card.Content>
-        <Title>{item.title}</Title>
-        <Paragraph>{item.description}</Paragraph>
-        <View style={styles.eventInfo}>
-          <Text style={styles.infoText}>📅 {new Date(item.date).toLocaleDateString()}</Text>
-          <Text style={styles.infoText}>📍 {item.location}</Text>
-          <Text style={styles.infoText}>👥 {item.registrations_count}/{item.max_attendees}</Text>
+  const handleQRScan = async () => {
+    try {
+      // Navigate to QR Scanner screen
+      navigation.navigate("QRScanner");
+    } catch (error) {
+      console.error("QR scan error:", error);
+      Alert.alert("Error", "Failed to open QR scanner");
+    }
+  };
+
+  const handleQRResult = (data) => {
+    const qrData = QRScannerService.parseEventQR(data);
+
+    if (!qrData) {
+      QRScannerService.showQRError("This QR code is not for an event.");
+      return;
+    }
+
+    // Navigate to event detail with QR flag
+    navigation.navigate("EventDetail", {
+      eventId: qrData.eventId,
+      fromQR: true,
+    });
+  };
+
+  const handleJoinEvent = (eventId) => {
+    navigation.navigate("EventDetail", {
+      eventId: eventId,
+      autoJoin: true,
+    });
+  };
+
+  const renderQuickActions = () => (
+    <View style={styles.quickActionsContainer}>
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+      <View style={styles.actionsGrid}>
+        {/* Top Row */}
+        <View style={styles.gridRow}>
+          <QuickActionCard
+            icon={<EventsIcon size={32} color="#4A6CF7" />}
+            title="Browse Events"
+            subtitle="Find events near you"
+            onPress={() => navigation.navigate("Events")}
+          />
+
+          <QuickActionCard
+            icon={<CalendarIcon size={32} color="#4A6CF7" />}
+            title="My Events"
+            subtitle="See registrations"
+            onPress={() => navigation.navigate("MyEvents")}
+          />
         </View>
-      </Card.Content>
-      <Card.Actions>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('EventDetail', { eventId: item.id })}
-        >
-          View Details
-        </Button>
-      </Card.Actions>
-    </Card>
+
+        {/* Bottom Row */}
+        <View style={styles.gridRow}>
+          <QuickActionCard
+            icon={<QRScanIcon size={32} color="#FFFFFF" />}
+            title="Scan QR Code"
+            subtitle="Join event instantly"
+            onPress={handleQRScan}
+            isPrimary={true}
+            backgroundColor="#4A6CF7"
+          />
+
+          <QuickActionCard
+            icon={<ProfileIcon size={32} color="#4A6CF7" />}
+            title="My Profile"
+            subtitle="Update info"
+            onPress={() => navigation.navigate("Profile")}
+          />
+        </View>
+      </View>
+    </View>
   );
 
-  if (loading) {
+  const renderEventsList = () => {
+    if (loading) {
+      return (
+        <View>
+          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          <LoadingCard />
+          <LoadingCard />
+        </View>
+      );
+    }
+
+    if (!events || events.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <QRScanIcon size={64} color="#9CA3AF" />
+          <Text style={styles.emptyTitle}>No events yet?</Text>
+          <Text style={styles.emptySubtitle}>
+            Scan a QR code to discover events near you!
+          </Text>
+        </View>
+      );
+    }
+
     return (
-      <View style={styles.centered}>
-        <Text>Loading events...</Text>
+      <View>
+        <Text style={styles.sectionTitle}>Upcoming Events</Text>
+        {events &&
+          Array.isArray(events) &&
+          events
+            .slice(0, 3)
+            .map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onJoin={() => handleJoinEvent(event.id)}
+                onLearnMore={() =>
+                  navigation.navigate("EventDetail", { eventId: event.id })
+                }
+              />
+            ))}
+
+        {events && Array.isArray(events) && events.length > 3 && (
+          <QuickActionCard
+            icon={<EventsIcon size={24} color="#4A6CF7" />}
+            title="View All Events"
+            subtitle={`${events.length - 3} more events`}
+            onPress={() => navigation.navigate("Events")}
+            backgroundColor="#F0F9FF"
+          />
+        )}
       </View>
     );
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.welcomeContainer}>
-        <Text testID="welcome-message" style={styles.welcomeText}>
-          Welcome to JIC Events!
-        </Text>
-      </View>
-      <FlatList
-        data={events}
-        renderItem={renderEvent}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#4A6CF7" />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#4A6CF7"]}
+            tintColor="#4A6CF7"
+          />
         }
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text>No events available</Text>
-          </View>
-        }
-      />
-      <FAB
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Welcome Card */}
+        <WelcomeCard
+          userName={
+            user?.first_name ? `${user.first_name} ${user.last_name}` : "Guest"
+          }
+          onPress={() => navigation.navigate("Profile")}
+        />
+
+        {/* Quick Actions Grid */}
+        {renderQuickActions()}
+
+        {/* Events List */}
+        {renderEventsList()}
+      </ScrollView>
+
+      {/* Floating Action Button for QR Scanner */}
+      <TouchableOpacity
         style={styles.fab}
-        icon="plus"
-        onPress={() => navigation.navigate('CreateEvent')}
-      />
-    </View>
+        onPress={handleQRScan}
+        activeOpacity={0.8}
+      >
+        <QRScanIcon size={28} color="#4A6CF7" />
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#F9FAFB",
   },
-  welcomeContainer: {
-    padding: 16,
-    backgroundColor: '#4A6CF7',
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  centered: {
+
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  listContent: {
-    padding: 16,
+
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
-  card: {
+
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1F2937",
     marginBottom: 16,
-    elevation: 4,
-  },
-  eventInfo: {
     marginTop: 8,
   },
-  infoText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+
+  quickActionsContainer: {
+    marginBottom: 24,
+    width: "100%",
   },
+
+  actionsGrid: {
+    gap: 15,
+    width: "100%",
+  },
+
+  gridRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 15,
+    width: "100%",
+  },
+
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#374151",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
   fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    borderWidth: 2,
+    borderColor: "#4A6CF7",
   },
 });
 

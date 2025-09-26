@@ -7,9 +7,16 @@ import { HomeIcon, EventsIcon, ProfileIcon } from '../components/SvgIcons';
 
 // Import screens
 import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import AnnouncementsScreen from '../screens/AnnouncementsScreen';
+import PrivacySecurityScreen from '../screens/PrivacySecurityScreen';
+import HelpSupportScreen from '../screens/HelpSupportScreen';
+import AboutScreen from '../screens/AboutScreen';
+import QRScannerScreen from '../screens/QRScannerScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -20,6 +27,11 @@ const AuthStack = () => (
     <Stack.Screen
       name="Login"
       component={LoginScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Register"
+      component={RegisterScreen}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -90,6 +102,36 @@ const MainStack = () => (
       name="EventDetail"
       component={EventDetailScreen}
       options={{ title: 'Event Details' }}
+    />
+    <Stack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Announcements"
+      component={AnnouncementsScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="PrivacySecurity"
+      component={PrivacySecurityScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="HelpSupport"
+      component={HelpSupportScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="About"
+      component={AboutScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="QRScanner"
+      component={QRScannerScreen}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

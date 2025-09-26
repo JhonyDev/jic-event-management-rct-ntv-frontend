@@ -15,21 +15,21 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Svg, { Path } from "react-native-svg";
-import {
-  EyeIcon,
-  EyeOffIcon,
-} from "../components/SvgIcons";
+import { EyeIcon, EyeOffIcon } from "../components/SvgIcons";
 import authService from "../services/authService";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-const LoginScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation }) => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -51,24 +51,73 @@ const LoginScreen = ({ navigation }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!email) newErrors.email = "Email is required";
-    if (!password) newErrors.password = "Password is required";
+
+    if (!firstName.trim()) newErrors.firstName = "First name is required";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      await authService.login(email, password);
-      navigation.replace("Main");
-    } catch (error) {
+      const userData = {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        username: email.trim().toLowerCase(), // Use email as username
+      };
+
+      await authService.register(userData);
+
       Alert.alert(
-        "Login Failed",
-        error.response?.data?.detail || "Invalid credentials"
+        "Registration Successful",
+        "Your account has been created successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.replace("Main"),
+          },
+        ]
       );
+    } catch (error) {
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (data.email) {
+          errorMessage = Array.isArray(data.email) ? data.email[0] : data.email;
+        } else if (data.username) {
+          errorMessage = Array.isArray(data.username) ? data.username[0] : data.username;
+        } else if (data.password) {
+          errorMessage = Array.isArray(data.password) ? data.password[0] : data.password;
+        } else if (data.detail) {
+          errorMessage = data.detail;
+        }
+      }
+
+      Alert.alert("Registration Failed", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -134,7 +183,68 @@ const LoginScreen = ({ navigation }) => {
                 },
               ]}
             >
-              <Text style={styles.formTitle}>Login to your account</Text>
+              <View style={styles.headerRow}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backButton}
+                >
+                  <Icon name="arrow-left" size={24} color="#4A6CF7" />
+                </TouchableOpacity>
+                <Text style={styles.formTitle}>Create your account</Text>
+                <View style={styles.placeholder} />
+              </View>
+
+              <View style={styles.nameRow}>
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.inputLabel}>First Name</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      errors.firstName && styles.inputError,
+                    ]}
+                  >
+                    <RNTextInput
+                      style={styles.input}
+                      value={firstName}
+                      onChangeText={(text) => {
+                        setFirstName(text);
+                        if (errors.firstName) setErrors({ ...errors, firstName: null });
+                      }}
+                      placeholder="John"
+                      placeholderTextColor="#9CA3AF"
+                      autoCapitalize="words"
+                    />
+                  </View>
+                  {errors.firstName && (
+                    <Text style={styles.errorText}>{errors.firstName}</Text>
+                  )}
+                </View>
+
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.inputLabel}>Last Name</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      errors.lastName && styles.inputError,
+                    ]}
+                  >
+                    <RNTextInput
+                      style={styles.input}
+                      value={lastName}
+                      onChangeText={(text) => {
+                        setLastName(text);
+                        if (errors.lastName) setErrors({ ...errors, lastName: null });
+                      }}
+                      placeholder="Doe"
+                      placeholderTextColor="#9CA3AF"
+                      autoCapitalize="words"
+                    />
+                  </View>
+                  {errors.lastName && (
+                    <Text style={styles.errorText}>{errors.lastName}</Text>
+                  )}
+                </View>
+              </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
@@ -145,19 +255,21 @@ const LoginScreen = ({ navigation }) => {
                   ]}
                 >
                   <RNTextInput
-                    testID="email-input"
                     style={styles.input}
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
                       if (errors.email) setErrors({ ...errors, email: null });
                     }}
-                    placeholder="thomas@email.com"
+                    placeholder="john@example.com"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
                 </View>
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email}</Text>
+                )}
               </View>
 
               <View style={styles.inputContainer}>
@@ -169,13 +281,11 @@ const LoginScreen = ({ navigation }) => {
                   ]}
                 >
                   <RNTextInput
-                    testID="password-input"
                     style={styles.input}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
-                      if (errors.password)
-                        setErrors({ ...errors, password: null });
+                      if (errors.password) setErrors({ ...errors, password: null });
                     }}
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"
@@ -192,66 +302,66 @@ const LoginScreen = ({ navigation }) => {
                     )}
                   </TouchableOpacity>
                 </View>
+                {errors.password && (
+                  <Text style={styles.errorText}>{errors.password}</Text>
+                )}
               </View>
 
-              <View style={styles.optionsRow}>
-                <TouchableOpacity
-                  style={styles.rememberContainer}
-                  onPress={() => setRememberMe(!rememberMe)}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.confirmPassword && styles.inputError,
+                  ]}
                 >
-                  <View
-                    style={[
-                      styles.checkbox,
-                      rememberMe && styles.checkboxChecked,
-                    ]}
+                  <RNTextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                      setConfirmPassword(text);
+                      if (errors.confirmPassword)
+                        setErrors({ ...errors, confirmPassword: null });
+                    }}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeIcon}
                   >
-                    {rememberMe && (
-                      <Icon name="check" size={14} color="white" />
+                    {showConfirmPassword ? (
+                      <EyeOffIcon size={20} />
+                    ) : (
+                      <EyeIcon size={20} />
                     )}
-                  </View>
-                  <Text style={styles.rememberText}>Remember me</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert("Info", "Password recovery coming soon!")
-                  }
-                >
-                  <Text style={styles.forgotText}>Forgot Password?</Text>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
+                {errors.confirmPassword && (
+                  <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                )}
               </View>
-
-              <TouchableOpacity
-                testID="login-button"
-                style={styles.signInButton}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.signInButtonText}>
-                  {loading ? "Signing in..." : "Sign in"}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>Or</Text>
-                <View style={styles.divider} />
-              </View>
-
 
               <TouchableOpacity
                 style={styles.signUpButton}
-                onPress={() => navigation.navigate("Register")}
+                onPress={handleRegister}
+                disabled={loading}
+                activeOpacity={0.8}
               >
-                <Text style={styles.signUpButtonText}>Sign up with email</Text>
+                <Text style={styles.signUpButtonText}>
+                  {loading ? "Creating Account..." : "Create Account"}
+                </Text>
               </TouchableOpacity>
 
               <Text style={styles.footerText}>
-                Already a member?
-                <Text style={styles.footerLink} onPress={() => handleLogin()}>
+                Already have an account?
+                <Text
+                  style={styles.footerLink}
+                  onPress={() => navigation.goBack()}
+                >
                   {" "}
-                  Login
+                  Sign In
                 </Text>
               </Text>
             </Animated.View>
@@ -329,15 +439,35 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     marginTop: -2,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+  backButton: {
+    padding: 8,
+  },
+  placeholder: {
+    width: 40,
+  },
   formTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#1F2937",
-    marginBottom: 24,
     textAlign: "center",
+    flex: 1,
+  },
+  nameRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
   },
   inputContainer: {
     marginBottom: 16,
+  },
+  halfWidth: {
+    flex: 1,
   },
   inputLabel: {
     fontSize: 14,
@@ -366,80 +496,23 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 4,
   },
-  optionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-    marginTop: 8,
+  errorText: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginTop: 4,
   },
-  rememberContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 4,
-    marginRight: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxChecked: {
+  signUpButton: {
     backgroundColor: "#4A6CF7",
-    borderColor: "#4A6CF7",
-  },
-  rememberText: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  forgotText: {
-    fontSize: 14,
-    color: "#4A6CF7",
-    fontWeight: "500",
-  },
-  signInButton: {
-    backgroundColor: "#1F2937",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 20,
+    marginTop: 8,
   },
-  signInButtonText: {
+  signUpButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E5E7EB",
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: "#9CA3AF",
-    fontSize: 14,
-  },
-  signUpButton: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginBottom: 16,
-    backgroundColor: "#F9FAFB",
-  },
-  signUpButtonText: {
-    color: "#1F2937",
-    fontSize: 16,
-    fontWeight: "500",
   },
   footerText: {
     textAlign: "center",
@@ -452,4 +525,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

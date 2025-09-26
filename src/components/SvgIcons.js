@@ -487,3 +487,414 @@ export const LogoutIcon = ({ size = 24, color = '#EF4444' }) => (
     />
   </Svg>
 );
+
+// Additional icons for About Screen
+export const ArrowLeftIcon = ({ size = 24, color = '#1F2937' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M19 12H5"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 19l-7-7 7-7"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CalendarAccountIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      ry="2"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="16"
+      y1="2"
+      x2="16"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="3"
+      y1="10"
+      x2="21"
+      y2="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx="12" cy="16" r="2" stroke={color} strokeWidth="2" />
+  </Svg>
+);
+
+export const EarthIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="2"
+      y1="12"
+      x2="22"
+      y2="12"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const EmailIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M22 6l-10 7L2 6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const UpdateIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 4v6h-6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M20.49 15a9 9 0 11-2.12-9.36L23 10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CalendarCheckIcon = ({ size = 24, color = '#10B981' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      ry="2"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="16"
+      y1="2"
+      x2="16"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="3"
+      y1="10"
+      x2="21"
+      y2="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9 16l2 2 4-4"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const BellIcon = ({ size = 24, color = '#10B981' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13.73 21a2 2 0 01-3.46 0"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const AccountCircleIcon = ({ size = 24, color = '#10B981' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 8a3 3 0 100 6 3 3 0 000-6z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M8.21 13.89L7 23l5-3 5 3-1.21-9.11"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const RefreshIcon = ({ size = 24, color = '#10B981' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 4v6h-6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M20.49 15a9 9 0 11-2.12-9.36L23 10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CameraIcon = ({ size = 24, color = '#10B981' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle
+      cx="12"
+      cy="13"
+      r="4"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CopyrightIcon = ({ size = 24, color = '#6B7280' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M15 9a3 3 0 00-6 0v6a3 3 0 006 0"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const HeartIcon = ({ size = 24, color = '#EF4444', filled = false }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : "none"}>
+    <Path
+      d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill={filled ? color : "none"}
+    />
+  </Svg>
+);
+
+// Additional icons for EditProfile Screen
+export const CameraOutlineIcon = ({ size = 24, color = '#6B7280' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle
+      cx="12"
+      cy="13"
+      r="4"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// QR Scanner Icons
+export const QRScanIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* QR Code squares */}
+    <Rect x="3" y="3" width="7" height="7" stroke={color} strokeWidth="2" fill="none" />
+    <Rect x="14" y="3" width="7" height="7" stroke={color} strokeWidth="2" fill="none" />
+    <Rect x="3" y="14" width="7" height="7" stroke={color} strokeWidth="2" fill="none" />
+
+    {/* Inner squares */}
+    <Rect x="5" y="5" width="3" height="3" fill={color} />
+    <Rect x="16" y="5" width="3" height="3" fill={color} />
+    <Rect x="5" y="16" width="3" height="3" fill={color} />
+
+    {/* Scanning lines */}
+    <Rect x="14" y="14" width="2" height="2" fill={color} />
+    <Rect x="17" y="14" width="2" height="2" fill={color} />
+    <Rect x="20" y="14" width="1" height="2" fill={color} />
+    <Rect x="14" y="17" width="2" height="2" fill={color} />
+    <Rect x="14" y="20" width="2" height="1" fill={color} />
+    <Rect x="17" y="17" width="4" height="1" fill={color} />
+    <Rect x="17" y="19" width="4" height="1" fill={color} />
+    <Rect x="19" y="20" width="2" height="1" fill={color} />
+  </Svg>
+);
+
+export const QRCodeIcon = ({ size = 24, color = '#374151' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* Corner frames */}
+    <Path d="M3 3h6v6H3V3zm0 2v2h2V5H3z" fill={color} />
+    <Path d="M15 3h6v6h-6V3zm2 2v2h2V5h-2z" fill={color} />
+    <Path d="M3 15h6v6H3v-6zm2 2v2h2v-2H5z" fill={color} />
+
+    {/* Data dots */}
+    <Rect x="11" y="5" width="1" height="1" fill={color} />
+    <Rect x="13" y="5" width="1" height="1" fill={color} />
+    <Rect x="5" y="11" width="1" height="1" fill={color} />
+    <Rect x="7" y="11" width="1" height="1" fill={color} />
+    <Rect x="9" y="11" width="1" height="1" fill={color} />
+    <Rect x="11" y="7" width="1" height="1" fill={color} />
+    <Rect x="11" y="9" width="1" height="1" fill={color} />
+    <Rect x="13" y="7" width="1" height="1" fill={color} />
+    <Rect x="11" y="11" width="1" height="1" fill={color} />
+    <Rect x="13" y="11" width="1" height="1" fill={color} />
+    <Rect x="15" y="11" width="1" height="1" fill={color} />
+    <Rect x="17" y="11" width="1" height="1" fill={color} />
+    <Rect x="19" y="11" width="1" height="1" fill={color} />
+    <Rect x="11" y="13" width="1" height="1" fill={color} />
+    <Rect x="15" y="13" width="1" height="1" fill={color} />
+    <Rect x="17" y="13" width="1" height="1" fill={color} />
+    <Rect x="19" y="13" width="1" height="1" fill={color} />
+    <Rect x="15" y="15" width="1" height="1" fill={color} />
+    <Rect x="19" y="15" width="1" height="1" fill={color} />
+    <Rect x="11" y="17" width="1" height="1" fill={color} />
+    <Rect x="13" y="17" width="1" height="1" fill={color} />
+    <Rect x="15" y="17" width="1" height="1" fill={color} />
+    <Rect x="17" y="17" width="1" height="1" fill={color} />
+    <Rect x="11" y="19" width="1" height="1" fill={color} />
+    <Rect x="17" y="19" width="1" height="1" fill={color} />
+    <Rect x="19" y="19" width="1" height="1" fill={color} />
+  </Svg>
+);
+
+export const ScanFrameIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* Corner frames */}
+    <Path
+      d="M3 3v4M3 3h4M21 3v4M21 3h-4M3 21v-4M3 21h4M21 21v-4M21 21h-4"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Scanning line */}
+    <Line x1="6" y1="12" x2="18" y2="12" stroke={color} strokeWidth="2" opacity="0.6" />
+  </Svg>
+);
