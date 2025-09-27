@@ -164,7 +164,7 @@ export const QRScannerCard = ({ onPress }) => {
 };
 
 // Enhanced Event Card
-export const EventCard = ({ event, onJoin, onLearnMore, loading = false }) => {
+export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegistered = false }) => {
   const formatFriendlyDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -268,26 +268,33 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false }) => {
       {/* Event Actions */}
       <View style={styles.eventActions}>
         <TouchableOpacity
-          style={styles.secondaryButton}
+          style={[
+            styles.secondaryButton,
+            isRegistered && { flex: 1 } // Take full width when registered
+          ]}
           onPress={onLearnMore}
           disabled={loading}
         >
-          <Text style={styles.secondaryButtonText}>Learn More</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.primaryButton,
-            availabilityInfo.urgent && styles.urgentButton,
-            loading && styles.disabledButton,
-          ]}
-          onPress={onJoin}
-          disabled={loading || availabilityInfo.text === "Event Full"}
-        >
-          <Text style={styles.primaryButtonText}>
-            {availabilityInfo.text === "Event Full" ? "Full" : "Join Event"}
+          <Text style={styles.secondaryButtonText}>
+            {isRegistered ? "View Event Details" : "Learn More"}
           </Text>
         </TouchableOpacity>
+
+        {!isRegistered && (
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              availabilityInfo.urgent && styles.urgentButton,
+              loading && styles.disabledButton,
+            ]}
+            onPress={onJoin}
+            disabled={loading || availabilityInfo.text === "Event Full"}
+          >
+            <Text style={styles.primaryButtonText}>
+              {availabilityInfo.text === "Event Full" ? "Full" : "Join Event"}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </BaseCard>
   );

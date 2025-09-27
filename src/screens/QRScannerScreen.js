@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import api from '../config/api';
 // Use React Native icons instead of Expo vector icons for compatibility
 import { Text as IconText } from 'react-native';
 
@@ -160,28 +160,14 @@ const QRScannerScreen = ({ navigation, route }) => {
       }
 
       // Fetch event details first
-      const eventResponse = await axios.get(
-        `http://127.0.0.1:8000/api/events/${eventId}/`,
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const eventResponse = await api.get(`/events/${eventId}/`);
 
       const event = eventResponse.data;
 
       // Check if user is already registered
       try {
-        const registrationResponse = await axios.get(
-          `http://127.0.0.1:8000/api/events/${eventId}/registration-status/`,
-          {
-            headers: {
-              'Authorization': `Token ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
+        const registrationResponse = await api.get(
+          `/events/${eventId}/registration_status/`
         );
 
         if (registrationResponse.data.is_registered) {
@@ -262,17 +248,9 @@ const QRScannerScreen = ({ navigation, route }) => {
 
   const registerForEvent = async (eventId, event) => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
-
-      const response = await axios.post(
-        `http://127.0.0.1:8000/api/events/${eventId}/register/`,
-        {},
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await api.post(
+        `/events/${eventId}/register/`,
+        {}
       );
 
       Alert.alert(
@@ -287,14 +265,12 @@ const QRScannerScreen = ({ navigation, route }) => {
           },
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Home'),
+            onPress: () => navigation.goBack(),
           },
         ]
       );
 
     } catch (error) {
-      console.error('Registration error:', error);
-
       let errorMessage = 'Registration failed. Please try again.';
 
       if (error.response && error.response.data) {
@@ -303,6 +279,11 @@ const QRScannerScreen = ({ navigation, route }) => {
         } else if (error.response.data.error) {
           errorMessage = error.response.data.error;
         }
+      }
+
+      // Only log unexpected errors, not expected ones like "already registered"
+      if (!errorMessage.toLowerCase().includes('already registered')) {
+        console.error('Registration error:', error);
       }
 
       Alert.alert(
@@ -471,9 +452,9 @@ const QRScannerScreen = ({ navigation, route }) => {
           <Text style={styles.examplesTitle}>Valid Formats:</Text>
           <TouchableOpacity
             style={styles.exampleButton}
-            onPress={() => setManualInput('http://127.0.0.1:8000/register/1/')}
+            onPress={() => setManualInput('http://165.232.126.196:8000/register/1/')}
           >
-            <Text style={styles.exampleText}>http://127.0.0.1:8000/register/1/</Text>
+            <Text style={styles.exampleText}>http://165.232.126.196:8000/register/1/</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exampleButton}

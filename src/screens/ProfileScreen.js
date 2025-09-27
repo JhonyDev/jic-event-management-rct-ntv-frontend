@@ -145,7 +145,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

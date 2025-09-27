@@ -6,15 +6,27 @@ import {
   StyleSheet,
   Alert,
   RefreshControl,
+  SafeAreaView,
+  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-import { Card, Title, Paragraph, Button, Chip } from 'react-native-paper';
+import { QuickActionCard } from '../components/Cards';
+import {
+  CalendarIcon,
+  LocationIcon,
+  ClockIcon,
+  UsersIcon,
+  InfoCircleIcon,
+  AgendaIcon,
+  SpeakersIcon,
+  MapIcon,
+} from '../components/SvgIcons';
 import eventService from '../services/eventService';
 
 const EventDetailScreen = ({ route, navigation }) => {
   const { eventId } = route.params;
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -39,156 +51,315 @@ const EventDetailScreen = ({ route, navigation }) => {
     await fetchEventDetails();
   };
 
-  const handleRegister = async () => {
-    setRegistering(true);
-    try {
-      if (event.is_registered) {
-        await eventService.unregisterFromEvent(eventId);
-        Alert.alert('Success', 'You have been unregistered from this event');
-      } else {
-        await eventService.registerForEvent(eventId);
-        Alert.alert('Success', 'You have been registered for this event');
-      }
-      fetchEventDetails(); // Refresh event details
-    } catch (error) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to process registration');
-    } finally {
-      setRegistering(false);
-    }
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const handleEventInfoPress = () => {
+    navigation.navigate('EventInfo', { event });
+  };
+
+  const handleAgendaPress = () => {
+    navigation.navigate('Agenda', { event });
+  };
+
+  const handleSpeakersPress = () => {
+    navigation.navigate('Speakers', { event });
+  };
+
+  const handleMapsPress = () => {
+    navigation.navigate('Maps', { event });
   };
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <Text>Loading event details...</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+        <View style={styles.centered}>
+          <Text style={styles.loadingText}>Loading event details...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!event) {
     return (
-      <View style={styles.centered}>
-        <Text>Event not found</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Event not found</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#4A6CF7']}
-          tintColor="#4A6CF7"
-        />
-      }
-    >
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title style={styles.title}>{event.title}</Title>
-          <View style={styles.chipContainer}>
-            <Chip icon="calendar" style={styles.chip}>
-              {new Date(event.date).toLocaleDateString()}
-            </Chip>
-            <Chip icon="clock" style={styles.chip}>
-              {new Date(event.date).toLocaleTimeString()}
-            </Chip>
-          </View>
-          <Paragraph style={styles.description}>{event.description}</Paragraph>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
-          <View style={styles.infoSection}>
-            <Text style={styles.infoLabel}>Location</Text>
-            <Text style={styles.infoText}>{event.location}</Text>
-          </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4A6CF7']}
+            tintColor="#4A6CF7"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Event Header */}
+        <View style={styles.eventHeader}>
+          <Text style={styles.eventTitle}>{event.title}</Text>
+          <Text style={styles.eventDescription}>{event.description}</Text>
 
-          <View style={styles.infoSection}>
-            <Text style={styles.infoLabel}>Organizer</Text>
-            <Text style={styles.infoText}>
+          {/* Event Basic Info */}
+          <View style={styles.basicInfo}>
+            <View style={styles.infoRow}>
+              <CalendarIcon size={20} color="#4A6CF7" />
+              <Text style={styles.infoText}>{formatDate(event.date)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <ClockIcon size={20} color="#4A6CF7" />
+              <Text style={styles.infoText}>{formatTime(event.date)}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <LocationIcon size={20} color="#4A6CF7" />
+              <Text style={styles.infoText}>{event.location}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <UsersIcon size={20} color="#4A6CF7" />
+              <Text style={styles.infoText}>
+                {event.registrations_count} / {event.max_attendees} attendees
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Action Cards Grid */}
+        <View style={styles.actionCardsContainer}>
+          <Text style={styles.sectionTitle}>Explore Event</Text>
+
+          <View style={styles.cardsGrid}>
+            {/* First Row */}
+            <View style={styles.gridRow}>
+              <QuickActionCard
+                icon={<InfoCircleIcon size={32} color="#4A6CF7" />}
+                title="Event Info"
+                subtitle="Details & Information"
+                onPress={handleEventInfoPress}
+              />
+
+              <QuickActionCard
+                icon={<AgendaIcon size={32} color="#10B981" />}
+                title="Agenda"
+                subtitle="Schedule & Timeline"
+                onPress={handleAgendaPress}
+              />
+            </View>
+
+            {/* Second Row */}
+            <View style={styles.gridRow}>
+              <QuickActionCard
+                icon={<SpeakersIcon size={32} color="#F59E0B" />}
+                title="Speakers"
+                subtitle="Meet the Presenters"
+                onPress={handleSpeakersPress}
+              />
+
+              <QuickActionCard
+                icon={<MapIcon size={32} color="#EF4444" />}
+                title="Maps"
+                subtitle="Location & Directions"
+                onPress={handleMapsPress}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Registration Status */}
+        {event.is_registered && (
+          <View style={styles.registrationStatus}>
+            <View style={styles.registeredBadge}>
+              <Text style={styles.registeredText}>✓ You are registered for this event</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Organizer Info */}
+        <View style={styles.organizerSection}>
+          <Text style={styles.sectionTitle}>Organizer</Text>
+          <View style={styles.organizerCard}>
+            <Text style={styles.organizerName}>
               {event.organizer.first_name} {event.organizer.last_name}
             </Text>
+            <Text style={styles.organizerEmail}>{event.organizer.email}</Text>
           </View>
-
-          <View style={styles.infoSection}>
-            <Text style={styles.infoLabel}>Attendees</Text>
-            <Text style={styles.infoText}>
-              {event.registrations_count} / {event.max_attendees} registered
-            </Text>
-          </View>
-
-          {event.is_registered && (
-            <Chip icon="check" style={styles.registeredChip}>
-              You are registered
-            </Chip>
-          )}
-        </Card.Content>
-
-        <Card.Actions style={styles.actions}>
-          <Button
-            mode={event.is_registered ? "outlined" : "contained"}
-            onPress={handleRegister}
-            loading={registering}
-            disabled={registering}
-          >
-            {event.is_registered ? 'Unregister' : 'Register'}
-          </Button>
-        </Card.Actions>
-      </Card>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F9FAFB',
   },
+
+
+  scrollView: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  card: {
-    margin: 16,
-    elevation: 4,
+
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
-  title: {
+
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+  },
+
+  eventHeader: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  eventTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#1F2937',
     marginBottom: 12,
+    lineHeight: 32,
   },
-  chipContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  chip: {
-    marginRight: 8,
-  },
-  description: {
+
+  eventDescription: {
     fontSize: 16,
+    color: '#6B7280',
     lineHeight: 24,
     marginBottom: 20,
   },
-  infoSection: {
+
+  basicInfo: {
+    gap: 12,
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  infoText: {
+    fontSize: 14,
+    color: '#374151',
+    marginLeft: 12,
+    flex: 1,
+  },
+
+  actionCardsContainer: {
+    marginBottom: 24,
+  },
+
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
     marginBottom: 16,
   },
-  infoLabel: {
-    fontSize: 14,
-    color: '#666',
+
+  cardsGrid: {
+    gap: 15,
+  },
+
+  gridRow: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+
+  registrationStatus: {
+    marginBottom: 24,
+  },
+
+  registeredBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  registeredText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  organizerSection: {
+    marginBottom: 24,
+  },
+
+  organizerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  organizerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
     marginBottom: 4,
   },
-  infoText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  registeredChip: {
-    backgroundColor: '#4CAF50',
-    marginTop: 16,
-    alignSelf: 'flex-start',
-  },
-  actions: {
-    padding: 16,
+
+  organizerEmail: {
+    fontSize: 14,
+    color: '#6B7280',
   },
 });
 

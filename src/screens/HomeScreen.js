@@ -49,14 +49,14 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchEvents = async () => {
     try {
-      const data = await eventService.getEvents();
+      const data = await eventService.getRegisteredEvents();
       // Ensure data is an array, default to empty array if not
       const eventsArray = Array.isArray(data) ? data : data?.results || [];
       setEvents(eventsArray);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error("Error fetching registered events:", error);
       setEvents([]); // Set empty array on error
-      Alert.alert("Error", "Failed to load events. Pull down to retry.");
+      Alert.alert("Error", "Failed to load your registered events. Pull down to retry.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -148,7 +148,7 @@ const HomeScreen = ({ navigation }) => {
     if (loading) {
       return (
         <View>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          <Text style={styles.sectionTitle}>My Upcoming Events</Text>
           <LoadingCard />
           <LoadingCard />
         </View>
@@ -159,9 +159,9 @@ const HomeScreen = ({ navigation }) => {
       return (
         <View style={styles.emptyState}>
           <QRScanIcon size={64} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>No events yet?</Text>
+          <Text style={styles.emptyTitle}>No registered events</Text>
           <Text style={styles.emptySubtitle}>
-            Scan a QR code to discover events near you!
+            Scan a QR code or browse events to register for upcoming events!
           </Text>
         </View>
       );
@@ -169,7 +169,7 @@ const HomeScreen = ({ navigation }) => {
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>Upcoming Events</Text>
+        <Text style={styles.sectionTitle}>My Upcoming Events</Text>
         {events &&
           Array.isArray(events) &&
           events
@@ -182,15 +182,16 @@ const HomeScreen = ({ navigation }) => {
                 onLearnMore={() =>
                   navigation.navigate("EventDetail", { eventId: event.id })
                 }
+                isRegistered={true}
               />
             ))}
 
         {events && Array.isArray(events) && events.length > 3 && (
           <QuickActionCard
             icon={<EventsIcon size={24} color="#4A6CF7" />}
-            title="View All Events"
-            subtitle={`${events.length - 3} more events`}
-            onPress={() => navigation.navigate("Events")}
+            title="View All My Events"
+            subtitle={`${events.length - 3} more registered events`}
+            onPress={() => navigation.navigate("MyEvents")}
             backgroundColor="#F0F9FF"
           />
         )}
@@ -200,7 +201,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#4A6CF7" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
       <ScrollView
         style={styles.scrollView}
@@ -254,6 +255,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: 16,
+    paddingTop: 40,
     paddingBottom: 20,
   },
 

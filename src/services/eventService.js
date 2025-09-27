@@ -90,6 +90,54 @@ const eventService = {
       throw error;
     }
   },
+
+  // Get event agenda and sessions
+  getEventAgenda: async (eventId) => {
+    try {
+      const response = await api.get(`/events/${eventId}/agenda/`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist, return mock data for now
+      console.log('Agenda endpoint not available, using mock data');
+      throw error;
+    }
+  },
+
+  // Get event sessions
+  getEventSessions: async (eventId) => {
+    try {
+      const response = await api.get(`/events/${eventId}/sessions/`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist, return mock data for now
+      console.log('Sessions endpoint not available, using mock data');
+      throw error;
+    }
+  },
+
+  // Get event speakers
+  getEventSpeakers: async (eventId) => {
+    try {
+      const response = await api.get(`/events/${eventId}/speakers/`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist, return mock data for now
+      console.log('Speakers endpoint not available, using mock data');
+      throw error;
+    }
+  },
+
+  // Get event location details
+  getEventLocation: async (eventId) => {
+    try {
+      const response = await api.get(`/events/${eventId}/location/`);
+      return response.data;
+    } catch (error) {
+      // If endpoint doesn't exist, return mock data for now
+      console.log('Location endpoint not available, using mock data');
+      throw error;
+    }
+  },
 };
 
 export default eventService;

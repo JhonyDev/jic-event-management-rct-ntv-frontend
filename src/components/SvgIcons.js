@@ -898,3 +898,130 @@ export const ScanFrameIcon = ({ size = 24, color = '#4A6CF7' }) => (
     <Line x1="6" y1="12" x2="18" y2="12" stroke={color} strokeWidth="2" opacity="0.6" />
   </Svg>
 );
+
+// Event Detail Screen Icons
+export const AgendaIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x="3"
+      y="4"
+      width="18"
+      height="18"
+      rx="2"
+      ry="2"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="16"
+      y1="2"
+      x2="16"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="6"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="3"
+      y1="10"
+      x2="21"
+      y2="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Agenda items */}
+    <Line x1="8" y1="14" x2="16" y2="14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Line x1="8" y1="17" x2="13" y2="17" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Circle cx="6" cy="14" r="1" fill={color} />
+    <Circle cx="6" cy="17" r="1" fill={color} />
+  </Svg>
+);
+
+export const SpeakersIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* Main speaker */}
+    <Circle cx="12" cy="8" r="3" stroke={color} strokeWidth="2" />
+    <Path
+      d="M16 14H8c-2 0-4 1.5-4 4v2h16v-2c0-2.5-2-4-4-4z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Additional speakers */}
+    <Circle cx="6" cy="6" r="2" stroke={color} strokeWidth="1.5" opacity="0.6" />
+    <Circle cx="18" cy="6" r="2" stroke={color} strokeWidth="1.5" opacity="0.6" />
+  </Svg>
+);
+
+export const MapIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="8"
+      y1="2"
+      x2="8"
+      y2="18"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="16"
+      y1="6"
+      x2="16"
+      y2="22"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const InfoCircleIcon = ({ size = 24, color = '#4A6CF7' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle
+      cx="12"
+      cy="12"
+      r="10"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Line
+      x1="12"
+      y1="16"
+      x2="12"
+      y2="12"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx="12" cy="8" r="1" fill={color} />
+  </Svg>
+);
