@@ -40,7 +40,7 @@ const appContentService = {
   getContactInfo: async () => {
     try {
       const response = await api.get('/contact-info/');
-      return response.data;
+      return response.data.results || response.data;
     } catch (error) {
       throw error;
     }

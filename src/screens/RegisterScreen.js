@@ -17,10 +17,12 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Svg, { Path } from "react-native-svg";
 import { EyeIcon, EyeOffIcon } from "../components/SvgIcons";
 import authService from "../services/authService";
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
 const RegisterScreen = ({ navigation }) => {
+  const { theme, isDarkMode } = useTheme();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -109,9 +111,13 @@ const RegisterScreen = ({ navigation }) => {
         if (data.email) {
           errorMessage = Array.isArray(data.email) ? data.email[0] : data.email;
         } else if (data.username) {
-          errorMessage = Array.isArray(data.username) ? data.username[0] : data.username;
+          errorMessage = Array.isArray(data.username)
+            ? data.username[0]
+            : data.username;
         } else if (data.password) {
-          errorMessage = Array.isArray(data.password) ? data.password[0] : data.password;
+          errorMessage = Array.isArray(data.password)
+            ? data.password[0]
+            : data.password;
         } else if (data.detail) {
           errorMessage = data.detail;
         }
@@ -123,10 +129,24 @@ const RegisterScreen = ({ navigation }) => {
     }
   };
 
+  const gradientColors = isDarkMode
+    ? [
+        theme.colors.background,
+        theme.colors.surface,
+        theme.colors.surfaceVariant,
+      ]
+    : [
+        theme.colors.primary,
+        theme.colors.primaryVariant,
+        theme.colors.primaryDark,
+      ];
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <LinearGradient
-        colors={["#4A6CF7", "#2563EB", "#1E40AF"]}
+        colors={gradientColors}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -150,14 +170,48 @@ const RegisterScreen = ({ navigation }) => {
               ]}
             >
               <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  <Icon name="calendar-check" size={32} color="#4A6CF7" />
+                <View
+                  style={[
+                    styles.logoCircle,
+                    { backgroundColor: theme.colors.surface },
+                  ]}
+                >
+                  <Icon
+                    name="calendar-check"
+                    size={32}
+                    color={theme.colors.primary}
+                  />
                 </View>
               </View>
 
-              <Text style={styles.companyName}>JIC</Text>
-              <Text style={styles.companyTagline}>Event Management</Text>
-              <Text style={styles.companySubtitle}>Company</Text>
+              <Text
+                style={[
+                  styles.companyName,
+                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
+                ]}
+              >
+                JIC
+              </Text>
+              <Text
+                style={[
+                  styles.companyTagline,
+                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
+                ]}
+              >
+                Event Management
+              </Text>
+              <Text
+                style={[
+                  styles.companySubtitle,
+                  {
+                    color: isDarkMode
+                      ? theme.colors.onSurfaceVariant
+                      : "#FFFFFF",
+                  },
+                ]}
+              >
+                Platform
+              </Text>
             </Animated.View>
 
             <Svg
@@ -171,7 +225,7 @@ const RegisterScreen = ({ navigation }) => {
                 d={`M0,40 Q${width / 4},20 ${
                   width / 2
                 },40 T${width},40 L${width},120 L0,120 Z`}
-                fill="white"
+                fill={theme.colors.background}
               />
             </Svg>
 
@@ -180,6 +234,7 @@ const RegisterScreen = ({ navigation }) => {
                 styles.formSection,
                 {
                   opacity: fadeAnim,
+                  backgroundColor: theme.colors.background,
                 },
               ]}
             >
@@ -188,35 +243,62 @@ const RegisterScreen = ({ navigation }) => {
                   onPress={() => navigation.goBack()}
                   style={styles.backButton}
                 >
-                  <Icon name="arrow-left" size={24} color="#4A6CF7" />
+                  <Icon
+                    name="arrow-left"
+                    size={24}
+                    color={theme.colors.primary}
+                  />
                 </TouchableOpacity>
-                <Text style={styles.formTitle}>Create your account</Text>
+                <Text
+                  style={[
+                    styles.formTitle,
+                    { color: theme.colors.onBackground },
+                  ]}
+                >
+                  Create your account
+                </Text>
                 <View style={styles.placeholder} />
               </View>
 
               <View style={styles.nameRow}>
                 <View style={[styles.inputContainer, styles.halfWidth]}>
-                  <Text style={styles.inputLabel}>First Name</Text>
+                  <Text
+                    style={[
+                      styles.inputLabel,
+                      { color: theme.colors.onSurface },
+                    ]}
+                  >
+                    First Name
+                  </Text>
                   <View
                     style={[
                       styles.inputWrapper,
-                      errors.firstName && styles.inputError,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.surfaceVariant,
+                      },
+                      errors.firstName && { borderColor: theme.colors.error },
                     ]}
                   >
                     <RNTextInput
-                      style={styles.input}
+                      style={[styles.input, { color: theme.colors.onSurface }]}
                       value={firstName}
                       onChangeText={(text) => {
                         setFirstName(text);
-                        if (errors.firstName) setErrors({ ...errors, firstName: null });
+                        if (errors.firstName)
+                          setErrors({ ...errors, firstName: null });
                       }}
                       placeholder="John"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={theme.colors.onSurfaceVariant}
                       autoCapitalize="words"
                     />
                   </View>
                   {errors.firstName && (
-                    <Text style={styles.errorText}>{errors.firstName}</Text>
+                    <Text
+                      style={[styles.errorText, { color: theme.colors.error }]}
+                    >
+                      {errors.firstName}
+                    </Text>
                   )}
                 </View>
 
@@ -233,7 +315,8 @@ const RegisterScreen = ({ navigation }) => {
                       value={lastName}
                       onChangeText={(text) => {
                         setLastName(text);
-                        if (errors.lastName) setErrors({ ...errors, lastName: null });
+                        if (errors.lastName)
+                          setErrors({ ...errors, lastName: null });
                       }}
                       placeholder="Doe"
                       placeholderTextColor="#9CA3AF"
@@ -285,7 +368,8 @@ const RegisterScreen = ({ navigation }) => {
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
-                      if (errors.password) setErrors({ ...errors, password: null });
+                      if (errors.password)
+                        setErrors({ ...errors, password: null });
                     }}
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"

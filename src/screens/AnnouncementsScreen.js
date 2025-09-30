@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import announcementService from '../services/announcementService';
+import { useTheme } from '../context/ThemeContext';
 
 const AnnouncementsScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -72,7 +74,7 @@ const AnnouncementsScreen = ({ navigation }) => {
     const priorityConfig = getPriorityIcon(item.priority);
 
     return (
-      <TouchableOpacity style={styles.announcementCard} activeOpacity={0.8}>
+      <TouchableOpacity style={[styles.announcementCard, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]} activeOpacity={0.8}>
         <View style={styles.announcementHeader}>
           <View style={styles.prioritySection}>
             <Icon
@@ -84,21 +86,21 @@ const AnnouncementsScreen = ({ navigation }) => {
               {getPriorityLabel(item.priority)}
             </Text>
           </View>
-          <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+          <Text style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>{formatDate(item.created_at)}</Text>
         </View>
 
-        <Text style={styles.announcementTitle}>{item.title}</Text>
-        <Text style={styles.announcementContent}>{item.content}</Text>
+        <Text style={[styles.announcementTitle, { color: theme.colors.onSurface }]}>{item.title}</Text>
+        <Text style={[styles.announcementContent, { color: theme.colors.onSurfaceVariant }]}>{item.content}</Text>
 
         {item.event_title && (
           <View style={styles.eventSection}>
-            <Icon name="calendar" size={16} color="#6B7280" />
-            <Text style={styles.eventTitle}>{item.event_title}</Text>
+            <Icon name="calendar" size={16} color={theme.colors.onSurfaceVariant} />
+            <Text style={[styles.eventTitle, { color: theme.colors.onSurfaceVariant }]}>{item.event_title}</Text>
           </View>
         )}
 
         {item.author_name && (
-          <Text style={styles.authorText}>By {item.author_name}</Text>
+          <Text style={[styles.authorText, { color: theme.colors.onSurfaceVariant }]}>By {item.author_name}</Text>
         )}
       </TouchableOpacity>
     );
@@ -106,29 +108,18 @@ const AnnouncementsScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
         <View style={styles.centered}>
-          <Text style={styles.loadingText}>Loading announcements...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.onBackground }]}>Loading announcements...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-left" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Announcements</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
 
       <FlatList
         data={announcements}
@@ -139,15 +130,15 @@ const AnnouncementsScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#4A6CF7']}
-            tintColor="#4A6CF7"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="bullhorn-outline" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyTitle}>No Announcements</Text>
-            <Text style={styles.emptyText}>
+            <Icon name="bullhorn-outline" size={64} color={theme.colors.onSurfaceVariant} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.onSurfaceVariant }]}>No Announcements</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
               You'll see announcements for your registered events here
             </Text>
           </View>
@@ -160,29 +151,6 @@ const AnnouncementsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  placeholder: {
-    width: 40,
   },
   centered: {
     flex: 1,
@@ -191,22 +159,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
   },
   listContent: {
     padding: 16,
     flexGrow: 1,
   },
   announcementCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   announcementHeader: {
     flexDirection: 'row',
@@ -225,17 +186,14 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#6B7280',
   },
   announcementTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
     marginBottom: 8,
   },
   announcementContent: {
     fontSize: 16,
-    color: '#374151',
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -246,13 +204,11 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 14,
-    color: '#6B7280',
     marginLeft: 6,
     fontStyle: 'italic',
   },
   authorText: {
     fontSize: 12,
-    color: '#9CA3AF',
     textAlign: 'right',
   },
   emptyContainer: {
@@ -264,13 +220,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#9CA3AF',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 20,
   },

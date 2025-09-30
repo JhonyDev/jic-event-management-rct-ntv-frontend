@@ -15,15 +15,14 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Svg, { Path } from "react-native-svg";
-import {
-  EyeIcon,
-  EyeOffIcon,
-} from "../components/SvgIcons";
+import { EyeIcon, EyeOffIcon } from "../components/SvgIcons";
 import authService from "../services/authService";
+import { useTheme } from "../context/ThemeContext";
 
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
+  const { theme, isDarkMode } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -74,10 +73,24 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const gradientColors = isDarkMode
+    ? [
+        theme.colors.background,
+        theme.colors.surface,
+        theme.colors.surfaceVariant,
+      ]
+    : [
+        theme.colors.primary,
+        theme.colors.primaryVariant,
+        theme.colors.primaryDark,
+      ];
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <LinearGradient
-        colors={["#4A6CF7", "#2563EB", "#1E40AF"]}
+        colors={gradientColors}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.5, y: 1 }}
@@ -101,14 +114,48 @@ const LoginScreen = ({ navigation }) => {
               ]}
             >
               <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  <Icon name="calendar-check" size={32} color="#4A6CF7" />
+                <View
+                  style={[
+                    styles.logoCircle,
+                    { backgroundColor: theme.colors.surface },
+                  ]}
+                >
+                  <Icon
+                    name="calendar-check"
+                    size={32}
+                    color={theme.colors.primary}
+                  />
                 </View>
               </View>
 
-              <Text style={styles.companyName}>JIC</Text>
-              <Text style={styles.companyTagline}>Event Management</Text>
-              <Text style={styles.companySubtitle}>Company</Text>
+              <Text
+                style={[
+                  styles.companyName,
+                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
+                ]}
+              >
+                JIC
+              </Text>
+              <Text
+                style={[
+                  styles.companyTagline,
+                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
+                ]}
+              >
+                Event Management
+              </Text>
+              <Text
+                style={[
+                  styles.companySubtitle,
+                  {
+                    color: isDarkMode
+                      ? theme.colors.onSurfaceVariant
+                      : "#FFFFFF",
+                  },
+                ]}
+              >
+                Platform
+              </Text>
             </Animated.View>
 
             <Svg
@@ -122,7 +169,7 @@ const LoginScreen = ({ navigation }) => {
                 d={`M0,40 Q${width / 4},20 ${
                   width / 2
                 },40 T${width},40 L${width},120 L0,120 Z`}
-                fill="white"
+                fill={theme.colors.background}
               />
             </Svg>
 
@@ -131,29 +178,42 @@ const LoginScreen = ({ navigation }) => {
                 styles.formSection,
                 {
                   opacity: fadeAnim,
+                  backgroundColor: theme.colors.background,
                 },
               ]}
             >
-              <Text style={styles.formTitle}>Login to your account</Text>
+              <Text
+                style={[styles.formTitle, { color: theme.colors.onBackground }]}
+              >
+                Login to your account
+              </Text>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text
+                  style={[styles.inputLabel, { color: theme.colors.onSurface }]}
+                >
+                  Email
+                </Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    errors.email && styles.inputError,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                    errors.email && { borderColor: theme.colors.error },
                   ]}
                 >
                   <RNTextInput
                     testID="email-input"
-                    style={styles.input}
+                    style={[styles.input, { color: theme.colors.onSurface }]}
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
                       if (errors.email) setErrors({ ...errors, email: null });
                     }}
                     placeholder="thomas@email.com"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.onSurfaceVariant}
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
@@ -161,16 +221,24 @@ const LoginScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text
+                  style={[styles.inputLabel, { color: theme.colors.onSurface }]}
+                >
+                  Password
+                </Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    errors.password && styles.inputError,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                    errors.password && { borderColor: theme.colors.error },
                   ]}
                 >
                   <RNTextInput
                     testID="password-input"
-                    style={styles.input}
+                    style={[styles.input, { color: theme.colors.onSurface }]}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
@@ -178,7 +246,7 @@ const LoginScreen = ({ navigation }) => {
                         setErrors({ ...errors, password: null });
                     }}
                     placeholder="••••••••"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.onSurfaceVariant}
                     secureTextEntry={!showPassword}
                   />
                   <TouchableOpacity
@@ -186,9 +254,15 @@ const LoginScreen = ({ navigation }) => {
                     style={styles.eyeIcon}
                   >
                     {showPassword ? (
-                      <EyeOffIcon size={20} />
+                      <EyeOffIcon
+                        size={20}
+                        color={theme.colors.onSurfaceVariant}
+                      />
                     ) : (
-                      <EyeIcon size={20} />
+                      <EyeIcon
+                        size={20}
+                        color={theme.colors.onSurfaceVariant}
+                      />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -202,14 +276,29 @@ const LoginScreen = ({ navigation }) => {
                   <View
                     style={[
                       styles.checkbox,
-                      rememberMe && styles.checkboxChecked,
+                      { borderColor: theme.colors.border },
+                      rememberMe && {
+                        backgroundColor: theme.colors.primary,
+                        borderColor: theme.colors.primary,
+                      },
                     ]}
                   >
                     {rememberMe && (
-                      <Icon name="check" size={14} color="white" />
+                      <Icon
+                        name="check"
+                        size={14}
+                        color={theme.colors.onPrimary}
+                      />
                     )}
                   </View>
-                  <Text style={styles.rememberText}>Remember me</Text>
+                  <Text
+                    style={[
+                      styles.rememberText,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    Remember me
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -217,39 +306,88 @@ const LoginScreen = ({ navigation }) => {
                     Alert.alert("Info", "Password recovery coming soon!")
                   }
                 >
-                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                  <Text
+                    style={[styles.forgotText, { color: theme.colors.primary }]}
+                  >
+                    Forgot Password?
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity
                 testID="login-button"
-                style={styles.signInButton}
+                style={[
+                  styles.signInButton,
+                  { backgroundColor: theme.colors.primary },
+                ]}
                 onPress={handleLogin}
                 disabled={loading}
                 activeOpacity={0.8}
               >
-                <Text style={styles.signInButtonText}>
+                <Text
+                  style={[
+                    styles.signInButtonText,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
                   {loading ? "Signing in..." : "Sign in"}
                 </Text>
               </TouchableOpacity>
 
               <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>Or</Text>
-                <View style={styles.divider} />
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.dividerText,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Or
+                </Text>
+                <View
+                  style={[
+                    styles.divider,
+                    { backgroundColor: theme.colors.border },
+                  ]}
+                />
               </View>
 
-
               <TouchableOpacity
-                style={styles.signUpButton}
+                style={[
+                  styles.signUpButton,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surfaceVariant,
+                  },
+                ]}
                 onPress={() => navigation.navigate("Register")}
               >
-                <Text style={styles.signUpButtonText}>Sign up with email</Text>
+                <Text
+                  style={[
+                    styles.signUpButtonText,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  Sign up with email
+                </Text>
               </TouchableOpacity>
 
-              <Text style={styles.footerText}>
+              <Text
+                style={[
+                  styles.footerText,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
                 Already a member?
-                <Text style={styles.footerLink} onPress={() => handleLogin()}>
+                <Text
+                  style={[styles.footerLink, { color: theme.colors.primary }]}
+                  onPress={() => handleLogin()}
+                >
                   {" "}
                   Login
                 </Text>
@@ -265,7 +403,6 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   gradient: {
     flex: 1,
@@ -288,7 +425,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
@@ -303,17 +439,14 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 36,
     fontWeight: "bold",
-    color: "white",
     marginBottom: 4,
   },
   companyTagline: {
     fontSize: 18,
-    color: "white",
     opacity: 0.95,
   },
   companySubtitle: {
     fontSize: 16,
-    color: "white",
     opacity: 0.85,
     marginTop: 2,
   },
@@ -323,7 +456,6 @@ const styles = StyleSheet.create({
   },
   formSection: {
     flex: 1,
-    backgroundColor: "white",
     paddingHorizontal: 24,
     paddingTop: 30,
     paddingBottom: 20,
@@ -332,7 +464,6 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 24,
     textAlign: "center",
   },
@@ -341,7 +472,6 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: "#374151",
     marginBottom: 8,
     fontWeight: "500",
   },
@@ -349,19 +479,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     borderRadius: 8,
-    backgroundColor: "#F9FAFB",
     paddingHorizontal: 12,
     height: 48,
-  },
-  inputError: {
-    borderColor: "#EF4444",
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: "#1F2937",
   },
   eyeIcon: {
     padding: 4,
@@ -381,34 +505,25 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
     borderRadius: 4,
     marginRight: 8,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkboxChecked: {
-    backgroundColor: "#4A6CF7",
-    borderColor: "#4A6CF7",
-  },
   rememberText: {
     fontSize: 14,
-    color: "#6B7280",
   },
   forgotText: {
     fontSize: 14,
-    color: "#4A6CF7",
     fontWeight: "500",
   },
   signInButton: {
-    backgroundColor: "#1F2937",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 20,
   },
   signInButtonText: {
-    color: "white",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -420,34 +535,27 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E5E7EB",
   },
   dividerText: {
     marginHorizontal: 16,
-    color: "#9CA3AF",
     fontSize: 14,
   },
   signUpButton: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 16,
-    backgroundColor: "#F9FAFB",
   },
   signUpButtonText: {
-    color: "#1F2937",
     fontSize: 16,
     fontWeight: "500",
   },
   footerText: {
     textAlign: "center",
-    color: "#6B7280",
     fontSize: 14,
   },
   footerLink: {
-    color: "#4A6CF7",
     fontWeight: "600",
   },
 });

@@ -22,8 +22,10 @@ import {
   MapIcon,
 } from '../components/SvgIcons';
 import eventService from '../services/eventService';
+import { useTheme } from '../context/ThemeContext';
 
 const EventDetailScreen = ({ route, navigation }) => {
+  const { theme } = useTheme();
   const { eventId } = route.params;
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,7 @@ const EventDetailScreen = ({ route, navigation }) => {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+      timeZone: 'UTC'
     });
   };
 
@@ -86,12 +89,42 @@ const EventDetailScreen = ({ route, navigation }) => {
     navigation.navigate('Maps', { event });
   };
 
+  const handleUnregister = () => {
+    Alert.alert(
+      "Leave Event",
+      "Are you sure you want to unregister from this event? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Leave Event",
+          style: "destructive",
+          onPress: confirmUnregister
+        }
+      ]
+    );
+  };
+
+  const confirmUnregister = async () => {
+    try {
+      await eventService.unregisterFromEvent(eventId);
+      Alert.alert("Success", "You have successfully unregistered from this event.");
+      // Refresh event details to update registration status
+      await fetchEventDetails();
+    } catch (error) {
+      console.error("Error unregistering from event:", error);
+      Alert.alert("Error", "Failed to unregister from event. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
         <View style={styles.centered}>
-          <Text style={styles.loadingText}>Loading event details...</Text>
+          <Text style={[styles.loadingText, { color: theme.colors.onBackground }]}>Loading event details...</Text>
         </View>
       </SafeAreaView>
     );
@@ -99,18 +132,18 @@ const EventDetailScreen = ({ route, navigation }) => {
 
   if (!event) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Event not found</Text>
+          <Text style={[styles.errorText, { color: theme.colors.error }]}>Event not found</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
 
       <ScrollView
         style={styles.scrollView}
@@ -119,37 +152,37 @@ const EventDetailScreen = ({ route, navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#4A6CF7']}
-            tintColor="#4A6CF7"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
       >
         {/* Event Header */}
-        <View style={styles.eventHeader}>
-          <Text style={styles.eventTitle}>{event.title}</Text>
-          <Text style={styles.eventDescription}>{event.description}</Text>
+        <View style={[styles.eventHeader, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+          <Text style={[styles.eventTitle, { color: theme.colors.onSurface }]}>{event.title}</Text>
+          <Text style={[styles.eventDescription, { color: theme.colors.onSurfaceVariant }]}>{event.description}</Text>
 
           {/* Event Basic Info */}
           <View style={styles.basicInfo}>
             <View style={styles.infoRow}>
-              <CalendarIcon size={20} color="#4A6CF7" />
-              <Text style={styles.infoText}>{formatDate(event.date)}</Text>
+              <CalendarIcon size={20} color={theme.colors.primary} />
+              <Text style={[styles.infoText, { color: theme.colors.onSurface }]}>{formatDate(event.date)}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <ClockIcon size={20} color="#4A6CF7" />
-              <Text style={styles.infoText}>{formatTime(event.date)}</Text>
+              <ClockIcon size={20} color={theme.colors.primary} />
+              <Text style={[styles.infoText, { color: theme.colors.onSurface }]}>{formatTime(event.date)}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <LocationIcon size={20} color="#4A6CF7" />
-              <Text style={styles.infoText}>{event.location}</Text>
+              <LocationIcon size={20} color={theme.colors.primary} />
+              <Text style={[styles.infoText, { color: theme.colors.onSurface }]}>{event.location}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <UsersIcon size={20} color="#4A6CF7" />
-              <Text style={styles.infoText}>
+              <UsersIcon size={20} color={theme.colors.primary} />
+              <Text style={[styles.infoText, { color: theme.colors.onSurface }]}>
                 {event.registrations_count} / {event.max_attendees} attendees
               </Text>
             </View>
@@ -158,20 +191,20 @@ const EventDetailScreen = ({ route, navigation }) => {
 
         {/* Action Cards Grid */}
         <View style={styles.actionCardsContainer}>
-          <Text style={styles.sectionTitle}>Explore Event</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>Explore Event</Text>
 
           <View style={styles.cardsGrid}>
             {/* First Row */}
             <View style={styles.gridRow}>
               <QuickActionCard
-                icon={<InfoCircleIcon size={32} color="#4A6CF7" />}
+                icon={<InfoCircleIcon size={32} color={theme.colors.primary} />}
                 title="Event Info"
                 subtitle="Details & Information"
                 onPress={handleEventInfoPress}
               />
 
               <QuickActionCard
-                icon={<AgendaIcon size={32} color="#10B981" />}
+                icon={<AgendaIcon size={32} color={theme.colors.secondary} />}
                 title="Agenda"
                 subtitle="Schedule & Timeline"
                 onPress={handleAgendaPress}
@@ -181,14 +214,14 @@ const EventDetailScreen = ({ route, navigation }) => {
             {/* Second Row */}
             <View style={styles.gridRow}>
               <QuickActionCard
-                icon={<SpeakersIcon size={32} color="#F59E0B" />}
+                icon={<SpeakersIcon size={32} color={theme.colors.accent} />}
                 title="Speakers"
                 subtitle="Meet the Presenters"
                 onPress={handleSpeakersPress}
               />
 
               <QuickActionCard
-                icon={<MapIcon size={32} color="#EF4444" />}
+                icon={<MapIcon size={32} color={theme.colors.error} />}
                 title="Maps"
                 subtitle="Location & Directions"
                 onPress={handleMapsPress}
@@ -203,17 +236,24 @@ const EventDetailScreen = ({ route, navigation }) => {
             <View style={styles.registeredBadge}>
               <Text style={styles.registeredText}>✓ You are registered for this event</Text>
             </View>
+            <TouchableOpacity
+              style={styles.unregisterButton}
+              onPress={handleUnregister}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.unregisterButtonText}>Leave Event</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {/* Organizer Info */}
         <View style={styles.organizerSection}>
-          <Text style={styles.sectionTitle}>Organizer</Text>
-          <View style={styles.organizerCard}>
-            <Text style={styles.organizerName}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>Organizer</Text>
+          <View style={[styles.organizerCard, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+            <Text style={[styles.organizerName, { color: theme.colors.onSurface }]}>
               {event.organizer.first_name} {event.organizer.last_name}
             </Text>
-            <Text style={styles.organizerEmail}>{event.organizer.email}</Text>
+            <Text style={[styles.organizerEmail, { color: theme.colors.onSurfaceVariant }]}>{event.organizer.email}</Text>
           </View>
         </View>
       </ScrollView>
@@ -224,7 +264,6 @@ const EventDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
 
 
@@ -245,21 +284,17 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
   },
 
   errorText: {
     fontSize: 16,
-    color: '#EF4444',
   },
 
   eventHeader: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
     marginTop: 16,
     marginBottom: 24,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -269,14 +304,12 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
     marginBottom: 12,
     lineHeight: 32,
   },
 
   eventDescription: {
     fontSize: 16,
-    color: '#6B7280',
     lineHeight: 24,
     marginBottom: 20,
   },
@@ -292,7 +325,6 @@ const styles = StyleSheet.create({
 
   infoText: {
     fontSize: 14,
-    color: '#374151',
     marginLeft: 12,
     flex: 1,
   },
@@ -304,7 +336,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
     marginBottom: 16,
   },
 
@@ -330,6 +361,21 @@ const styles = StyleSheet.create({
   },
 
   registeredText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  unregisterButton: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+
+  unregisterButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',

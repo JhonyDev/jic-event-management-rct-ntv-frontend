@@ -25,8 +25,10 @@ import {
 import eventService from "../services/eventService";
 import QRScannerService from "../utils/qrScanner";
 import profileService from "../services/profileService";
+import { useTheme } from "../context/ThemeContext";
 
 const HomeScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,14 +51,19 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchEvents = async () => {
     try {
-      const data = await eventService.getRegisteredEvents();
+      const data = await eventService.getUpcomingRegisteredEvents();
       // Ensure data is an array, default to empty array if not
       const eventsArray = Array.isArray(data) ? data : data?.results || [];
+
+      // The API already filters for upcoming registered events
       setEvents(eventsArray);
     } catch (error) {
-      console.error("Error fetching registered events:", error);
+      console.error("Error fetching registered upcoming events:", error);
       setEvents([]); // Set empty array on error
-      Alert.alert("Error", "Failed to load your registered events. Pull down to retry.");
+      Alert.alert(
+        "Error",
+        "Failed to load your registered events. Pull down to retry."
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -102,20 +109,22 @@ const HomeScreen = ({ navigation }) => {
 
   const renderQuickActions = () => (
     <View style={styles.quickActionsContainer}>
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
+        Quick Actions
+      </Text>
 
       <View style={styles.actionsGrid}>
         {/* Top Row */}
         <View style={styles.gridRow}>
           <QuickActionCard
-            icon={<EventsIcon size={32} color="#4A6CF7" />}
+            icon={<EventsIcon size={32} color="#FFFFFF" />}
             title="Browse Events"
             subtitle="Find events near you"
-            onPress={() => navigation.navigate("Events")}
+            onPress={() => navigation.navigate("BrowseEvents")}
           />
 
           <QuickActionCard
-            icon={<CalendarIcon size={32} color="#4A6CF7" />}
+            icon={<CalendarIcon size={32} color="#FFFFFF" />}
             title="My Events"
             subtitle="See registrations"
             onPress={() => navigation.navigate("MyEvents")}
@@ -129,12 +138,12 @@ const HomeScreen = ({ navigation }) => {
             title="Scan QR Code"
             subtitle="Join event instantly"
             onPress={handleQRScan}
-            isPrimary={true}
-            backgroundColor="#4A6CF7"
+            isPrimary={false}
+            backgroundColor={theme.colors.surfaceVariant}
           />
 
           <QuickActionCard
-            icon={<ProfileIcon size={32} color="#4A6CF7" />}
+            icon={<ProfileIcon size={32} color="#FFFFFF" />}
             title="My Profile"
             subtitle="Update info"
             onPress={() => navigation.navigate("Profile")}
@@ -148,7 +157,11 @@ const HomeScreen = ({ navigation }) => {
     if (loading) {
       return (
         <View>
-          <Text style={styles.sectionTitle}>My Upcoming Events</Text>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+          >
+            Upcoming Events
+          </Text>
           <LoadingCard />
           <LoadingCard />
         </View>
@@ -157,19 +170,32 @@ const HomeScreen = ({ navigation }) => {
 
     if (!events || events.length === 0) {
       return (
-        <View style={styles.emptyState}>
-          <QRScanIcon size={64} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>No registered events</Text>
-          <Text style={styles.emptySubtitle}>
-            Scan a QR code or browse events to register for upcoming events!
+        <View>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+          >
+            Upcoming Events
           </Text>
+          <View style={styles.emptyState}>
+            <QRScanIcon size={64} color="#9CA3AF" />
+            <Text style={[styles.emptyTitle, { color: "#9CA3AF" }]}>
+              No Upcoming Events
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: "#9CA3AF" }]}>
+              Scan a QR code or browse events to register for upcoming events!
+            </Text>
+          </View>
         </View>
       );
     }
 
     return (
       <View>
-        <Text style={styles.sectionTitle}>My Upcoming Events</Text>
+        <Text
+          style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
+        >
+          My Upcoming Events
+        </Text>
         {events &&
           Array.isArray(events) &&
           events
@@ -188,7 +214,7 @@ const HomeScreen = ({ navigation }) => {
 
         {events && Array.isArray(events) && events.length > 3 && (
           <QuickActionCard
-            icon={<EventsIcon size={24} color="#4A6CF7" />}
+            icon={<EventsIcon size={24} color="#FFFFFF" />}
             title="View All My Events"
             subtitle={`${events.length - 3} more registered events`}
             onPress={() => navigation.navigate("MyEvents")}
@@ -200,8 +226,14 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
+      <StatusBar
+        barStyle={theme.colors.statusBar}
+        backgroundColor={theme.colors.background}
+        translucent={true}
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -210,8 +242,8 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#4A6CF7"]}
-            tintColor="#4A6CF7"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -222,6 +254,7 @@ const HomeScreen = ({ navigation }) => {
             user?.first_name ? `${user.first_name} ${user.last_name}` : "Guest"
           }
           onPress={() => navigation.navigate("Profile")}
+          nextEvent={events && events.length > 0 ? events[0] : null}
         />
 
         {/* Quick Actions Grid */}
@@ -233,11 +266,11 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Floating Action Button for QR Scanner */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
         onPress={handleQRScan}
         activeOpacity={0.8}
       >
-        <QRScanIcon size={28} color="#4A6CF7" />
+        <QRScanIcon size={28} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -246,7 +279,6 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
   },
 
   scrollView: {
@@ -255,14 +287,13 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 20,
   },
 
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1F2937",
     marginBottom: 16,
     marginTop: 8,
   },
@@ -293,14 +324,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#374151",
     marginTop: 16,
     marginBottom: 8,
   },
 
   emptySubtitle: {
     fontSize: 14,
-    color: "#6B7280",
     textAlign: "center",
     lineHeight: 20,
   },
@@ -312,16 +341,9 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    borderWidth: 2,
-    borderColor: "#4A6CF7",
+    borderWidth: 0,
   },
 });
 

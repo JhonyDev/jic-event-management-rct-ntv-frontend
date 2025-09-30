@@ -17,8 +17,10 @@ import {
   LocationIcon,
 } from '../components/SvgIcons';
 import eventService from '../services/eventService';
+import { useTheme } from '../context/ThemeContext';
 
 const AgendaScreen = ({ route, navigation }) => {
+  const { theme } = useTheme();
   const { event } = route.params;
   const [agendaData, setAgendaData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -181,18 +183,40 @@ const AgendaScreen = ({ route, navigation }) => {
     }
   };
 
+  // Group agendas by day
+  const groupAgendasByDay = (agendas) => {
+    const groupedByDay = {};
+
+    agendas.forEach((agenda) => {
+      const dayKey = agenda.day_number || 1;
+
+      if (!groupedByDay[dayKey]) {
+        groupedByDay[dayKey] = {
+          dayNumber: dayKey,
+          date: agenda.date,
+          agendas: []
+        };
+      }
+
+      groupedByDay[dayKey].agendas.push(agenda);
+    });
+
+    // Convert to array and sort by day number
+    return Object.values(groupedByDay).sort((a, b) => a.dayNumber - b.dayNumber);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Event Header */}
-        <View style={styles.eventnow }>
-          <View style={styles.iconContainer}>
-            <AgendaIcon size={48} color="#10B981" />
+        <View style={styles.eventHeader}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.primaryContainer }]}>
+            <AgendaIcon size={48} color={theme.colors.secondary} />
           </View>
-          <Text style={styles.eventTitle}>{event.title}</Text>
-          <Text style={styles.eventSubtitle}>
+          <Text style={[styles.eventTitle, { color: theme.colors.onBackground }]}>{event.title}</Text>
+          <Text style={[styles.eventSubtitle, { color: theme.colors.onSurfaceVariant }]}>
             {new Date(event.date).toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
@@ -205,28 +229,20 @@ const AgendaScreen = ({ route, navigation }) => {
         {/* Loading State */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4A6CF7" />
-            <Text style={styles.loadingText}>Loading agenda...</Text>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}>Loading agenda...</Text>
           </View>
         ) : agendaData && agendaData.length > 0 ? (
           /* Agenda Content */
           <View style={styles.agendaContainer}>
-            {agendaData.map((dayAgenda, dayIndex) => (
-              <View key={dayAgenda.id} style={styles.dayContainer}>
-                {/* Simple Day Header */}
+            {groupAgendasByDay(agendaData).map((dayGroup, dayIndex) => (
+              <View key={`day-${dayGroup.dayNumber}`} style={styles.dayContainer}>
+                {/* Day Header - Only shown once per day */}
                 <View style={styles.dayHeader}>
-                  <Text style={styles.dayText}>Day {dayAgenda.day_number || dayIndex + 1}</Text>
-                </View>
-
-                {/* Agenda Details (no card) */}
-                <View style={styles.agendaDetails}>
-                  <Text style={styles.agendaTitle}>{dayAgenda.title}</Text>
-                  {dayAgenda.description && (
-                    <Text style={styles.agendaDescription}>{dayAgenda.description}</Text>
-                  )}
-                  {dayAgenda.date && (
-                    <Text style={styles.agendaDate}>
-                      {new Date(dayAgenda.date).toLocaleDateString('en-US', {
+                  <Text style={[styles.dayText, { color: theme.colors.onBackground }]}>Day {dayGroup.dayNumber}</Text>
+                  {dayGroup.date && (
+                    <Text style={[styles.dayDate, { color: theme.colors.primary }]}>
+                      {new Date(dayGroup.date).toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric',
@@ -235,80 +251,97 @@ const AgendaScreen = ({ route, navigation }) => {
                   )}
                 </View>
 
-                {/* Timeline with Sessions */}
-                {dayAgenda.sessions && dayAgenda.sessions.length > 0 && (
-                  <View style={styles.timelineContainer}>
-                    {dayAgenda.sessions.map((session, sessionIndex) => (
-                      <View key={session.id} style={styles.timelineItem}>
-                        {/* Timeline Column with Line and Dot */}
-                        <View style={styles.timelineColumn}>
-                          <View style={[styles.timelineDot, { backgroundColor: getTypeColor(session.type) }]} />
-                          {sessionIndex < dayAgenda.sessions.length - 1 && (
-                            <View style={styles.timelineLine} />
-                          )}
-                        </View>
+                {/* All agendas for this day */}
+                {dayGroup.agendas.map((dayAgenda, agendaIndex) => (
+                  <View key={dayAgenda.id} style={styles.agendaContainer}>
+                    {/* Agenda Details */}
+                    <View style={styles.agendaDetails}>
+                      <Text style={[styles.agendaTitle, { color: theme.colors.onBackground }]}>{dayAgenda.title}</Text>
+                      {dayAgenda.description && (
+                        <Text style={[styles.agendaDescription, { color: theme.colors.onSurfaceVariant }]}>{dayAgenda.description}</Text>
+                      )}
+                    </View>
 
-                        {/* Session Card */}
-                        <View style={styles.sessionCard}>
-                          {/* Session Header */}
-                          <View style={styles.sessionHeader}>
-                            <View style={styles.sessionTimeContainer}>
-                              <ClockIcon size={16} color="#4A6CF7" />
-                              <Text style={styles.sessionTime}>{session.time}</Text>
-                              <Text style={styles.sessionDuration}>• {session.duration}</Text>
-                            </View>
-                            <View style={[styles.sessionTypeBadge, { backgroundColor: getTypeColor(session.type) }]}>
-                              <Text style={styles.sessionTypeText}>{getTypeLabel(session.type)}</Text>
-                            </View>
-                          </View>
-
-                          {/* Session Content */}
-                          <View style={styles.sessionContent}>
-                            <Text style={styles.sessionTitle}>{session.title}</Text>
-                            {session.description && (
-                              <Text style={styles.sessionDescription}>{session.description}</Text>
-                            )}
-
-                            {/* Session Footer */}
-                            <View style={styles.sessionFooter}>
-                              <View style={styles.sessionLocation}>
-                                <LocationIcon size={14} color="#6B7280" />
-                                <Text style={styles.sessionLocationText}>{session.location}</Text>
-                              </View>
+                    {/* Timeline with Sessions */}
+                    {dayAgenda.sessions && dayAgenda.sessions.length > 0 && (
+                      <View style={styles.timelineContainer}>
+                        {dayAgenda.sessions.map((session, sessionIndex) => (
+                          <View key={session.id} style={styles.timelineItem}>
+                            {/* Timeline Column with Line and Dot */}
+                            <View style={styles.timelineColumn}>
+                              <View style={[styles.timelineDot, { backgroundColor: getTypeColor(session.type) }]} />
+                              {sessionIndex < dayAgenda.sessions.length - 1 && (
+                                <View style={[styles.timelineLine, { backgroundColor: theme.colors.border }]} />
+                              )}
                             </View>
 
-                            {/* Session Speakers */}
-                            {session.speakers && session.speakers.length > 0 ? (
-                              <View style={styles.speakersContainer}>
-                                {session.speakers.map((speaker, speakerIndex) => (
-                                  <View key={speakerIndex} style={styles.speakerBadge}>
-                                    <Text style={styles.speakerBadgeText}>{speaker.name || speaker}</Text>
-                                  </View>
-                                ))}
-                              </View>
-                            ) : session.speaker ? (
-                              <View style={styles.speakersContainer}>
-                                <View style={styles.speakerBadge}>
-                                  <Text style={styles.speakerBadgeText}>{session.speaker}</Text>
+                            {/* Session Card */}
+                            <View style={[styles.sessionCard, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+                              {/* Session Header */}
+                              <View style={styles.sessionHeader}>
+                                <View style={styles.sessionTimeContainer}>
+                                  <ClockIcon size={16} color={theme.colors.primary} />
+                                  <Text style={[styles.sessionTime, { color: theme.colors.onSurface }]}>{session.time}</Text>
+                                  <Text style={[styles.sessionDuration, { color: theme.colors.onSurfaceVariant }]}>• {session.duration}</Text>
+                                </View>
+                                <View style={[styles.sessionTypeBadge, { backgroundColor: getTypeColor(session.type) }]}>
+                                  <Text style={styles.sessionTypeText}>{getTypeLabel(session.type)}</Text>
                                 </View>
                               </View>
-                            ) : null}
-                          </View>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
 
+                              {/* Session Content */}
+                              <View style={styles.sessionContent}>
+                                <Text style={[styles.sessionTitle, { color: theme.colors.onSurface }]}>{session.title}</Text>
+                                {session.description && (
+                                  <Text style={[styles.sessionDescription, { color: theme.colors.onSurfaceVariant }]}>{session.description}</Text>
+                                )}
+
+                                {/* Session Footer */}
+                                <View style={styles.sessionFooter}>
+                                  <View style={styles.sessionLocation}>
+                                    <LocationIcon size={14} color={theme.colors.onSurfaceVariant} />
+                                    <Text style={[styles.sessionLocationText, { color: theme.colors.onSurfaceVariant }]}>{session.location}</Text>
+                                  </View>
+                                </View>
+
+                                {/* Session Speakers */}
+                                {session.speakers && session.speakers.length > 0 ? (
+                                  <View style={styles.speakersContainer}>
+                                    {session.speakers.map((speaker, speakerIndex) => (
+                                      <View key={speakerIndex} style={[styles.speakerBadge, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}>
+                                        <Text style={[styles.speakerBadgeText, { color: theme.colors.primary }]}>{speaker.name || speaker}</Text>
+                                      </View>
+                                    ))}
+                                  </View>
+                                ) : session.speaker ? (
+                                  <View style={styles.speakersContainer}>
+                                    <View style={[styles.speakerBadge, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}>
+                                      <Text style={[styles.speakerBadgeText, { color: theme.colors.primary }]}>{session.speaker}</Text>
+                                    </View>
+                                  </View>
+                                ) : null}
+                              </View>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))}
+
+                {/* Add separator between days if there are more days */}
+                {dayIndex < groupAgendasByDay(agendaData).length - 1 && (
+                  <View style={[styles.daySeparator, { backgroundColor: theme.colors.border }]} />
+                )}
               </View>
             ))}
           </View>
         ) : (
           /* No Agenda Data */
           <View style={styles.emptyContainer}>
-            <AgendaIcon size={64} color="#D1D5DB" />
-            <Text style={styles.emptyTitle}>No Agenda Available</Text>
-            <Text style={styles.emptyDescription}>
+            <AgendaIcon size={64} color={theme.colors.onSurfaceVariant} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.onSurfaceVariant }]}>No Agenda Available</Text>
+            <Text style={[styles.emptyDescription, { color: theme.colors.onSurfaceVariant }]}>
               The event agenda will be available soon. Please check back later.
             </Text>
           </View>
@@ -321,9 +354,7 @@ const AgendaScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
-
 
   scrollView: {
     flex: 1,
@@ -344,7 +375,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -353,14 +383,12 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 8,
   },
 
   eventSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
     textAlign: 'center',
   },
 
@@ -379,7 +407,12 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+  },
+
+  dayDate: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 4,
   },
 
   agendaDetails: {
@@ -390,20 +423,17 @@ const styles = StyleSheet.create({
   agendaTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 6,
   },
 
   agendaDescription: {
     fontSize: 14,
-    color: '#6B7280',
     lineHeight: 20,
     marginBottom: 6,
   },
 
   agendaDate: {
     fontSize: 13,
-    color: '#4A6CF7',
     fontWeight: '500',
   },
 
@@ -432,21 +462,14 @@ const styles = StyleSheet.create({
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#E5E7EB',
     marginTop: 8,
     minHeight: 40,
   },
 
   sessionCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 
   sessionHeader: {
@@ -465,13 +488,11 @@ const styles = StyleSheet.create({
   sessionTime: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
     marginLeft: 8,
   },
 
   sessionDuration: {
     fontSize: 14,
-    color: '#6B7280',
     marginLeft: 6,
   },
 
@@ -495,14 +516,12 @@ const styles = StyleSheet.create({
   sessionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 6,
     lineHeight: 24,
   },
 
   sessionDescription: {
     fontSize: 14,
-    color: '#6B7280',
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -518,7 +537,6 @@ const styles = StyleSheet.create({
 
   sessionLocationText: {
     fontSize: 13,
-    color: '#6B7280',
     marginLeft: 6,
   },
 
@@ -530,9 +548,7 @@ const styles = StyleSheet.create({
   },
 
   speakerBadge: {
-    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -540,7 +556,6 @@ const styles = StyleSheet.create({
 
   speakerBadgeText: {
     fontSize: 12,
-    color: '#4A6CF7',
     fontWeight: '500',
   },
 
@@ -562,18 +577,15 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#374151',
     marginTop: 16,
     marginBottom: 8,
   },
 
   emptyDescription: {
     fontSize: 14,
-    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 20,
   },
-
 
   loadingContainer: {
     flex: 1,
@@ -584,7 +596,6 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
     marginTop: 12,
   },
 });

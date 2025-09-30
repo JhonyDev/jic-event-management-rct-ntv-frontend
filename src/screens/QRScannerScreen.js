@@ -121,6 +121,12 @@ const QRScannerScreen = ({ navigation, route }) => {
       setIsProcessing(true);
       console.log('Processing QR data:', qrData);
 
+      // Check if this is a check-in QR code
+      if (qrData.type === 'checkin_url') {
+        await handleCheckIn(qrData.eventId);
+        return;
+      }
+
       // Extract event ID from different QR code formats
       let eventId = null;
       let eventDetails = null;
@@ -246,6 +252,90 @@ const QRScannerScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleCheckIn = async (eventId) => {
+    try {
+      // Get user token and user info
+      const token = await AsyncStorage.getItem('authToken');
+      const userInfoStr = await AsyncStorage.getItem('userInfo');
+
+      if (!token || !userInfoStr) {
+        Alert.alert(
+          'Authentication Required',
+          'Please log in to check in for events.',
+          [
+            {
+              text: 'Login',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ]
+        );
+        return;
+      }
+
+      const userInfo = JSON.parse(userInfoStr);
+      const userId = userInfo.id || userInfo.user_id;
+
+      if (!userId) {
+        throw new Error('User ID not found. Please log in again.');
+      }
+
+      // Send check-in request
+      const response = await api.post(
+        `/events/${eventId}/check_in/`,
+        { user_id: userId }
+      );
+
+      if (response.data.success) {
+        Alert.alert(
+          '✅ Check-In Successful!',
+          `You have been checked in for "${response.data.attendee.event}".\n\nPlease proceed to the entrance to collect your entry pass.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Check-in error:', error);
+
+      let errorMessage = 'Check-in failed. Please try again.';
+
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = 'Registration not found. Please ensure you are registered for this event.';
+        } else if (error.response.status === 400) {
+          errorMessage = error.response.data.error || 'Invalid check-in request.';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Authentication failed. Please log in and try again.';
+        } else if (error.response.data && error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert(
+        'Check-In Failed',
+        errorMessage,
+        [
+          {
+            text: 'Try Again',
+            onPress: () => setIsProcessing(false),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const registerForEvent = async (eventId, event) => {
     try {
       const response = await api.post(
@@ -328,6 +418,18 @@ const QRScannerScreen = ({ navigation, route }) => {
 
   const parseQRCode = (data) => {
     try {
+      // Check if it's a check-in URL from the organizer's QR code
+      if (data.includes('/api/events/') && data.includes('/check-in')) {
+        const match = data.match(/\/api\/events\/(\d+)\/check-in/);
+        if (match) {
+          return {
+            type: 'checkin_url',
+            eventId: match[1],
+            originalData: data
+          };
+        }
+      }
+
       // Check if it's a registration URL from Django
       if (data.includes('/register/')) {
         const match = data.match(/\/register\/(\d+)\//);
@@ -452,9 +554,15 @@ const QRScannerScreen = ({ navigation, route }) => {
           <Text style={styles.examplesTitle}>Valid Formats:</Text>
           <TouchableOpacity
             style={styles.exampleButton}
+            onPress={() => setManualInput('http://165.232.126.196:8000/api/events/1/check-in')}
+          >
+            <Text style={styles.exampleText}>Check-in: /api/events/1/check-in</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.exampleButton}
             onPress={() => setManualInput('http://165.232.126.196:8000/register/1/')}
           >
-            <Text style={styles.exampleText}>http://165.232.126.196:8000/register/1/</Text>
+            <Text style={styles.exampleText}>Register: /register/1/</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exampleButton}
@@ -477,7 +585,7 @@ const QRScannerScreen = ({ navigation, route }) => {
     return (
       <View style={styles.processingContainer}>
         <ActivityIndicator size="large" color="#4A6CF7" />
-        <Text style={styles.processingText}>Processing registration...</Text>
+        <Text style={styles.processingText}>Processing...</Text>
       </View>
     );
   }

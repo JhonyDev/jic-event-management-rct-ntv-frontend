@@ -91,6 +91,26 @@ const eventService = {
     }
   },
 
+  // Get upcoming events for browsing (events that allow signup without QR)
+  getBrowseableEvents: async () => {
+    try {
+      const response = await api.get('/events/upcoming/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get upcoming events the user is registered for
+  getUpcomingRegisteredEvents: async () => {
+    try {
+      const response = await api.get('/events/upcoming_registered/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get event agenda and sessions
   getEventAgenda: async (eventId) => {
     try {

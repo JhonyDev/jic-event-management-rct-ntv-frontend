@@ -10,6 +10,7 @@ import {
   StatusBar,
   Image,
   RefreshControl,
+  Switch,
 } from "react-native";
 import {
   PersonalInfoIcon,
@@ -22,8 +23,10 @@ import {
 } from "../components/SvgIcons";
 import authService from "../services/authService";
 import profileService from "../services/profileService";
+import { useTheme } from "../context/ThemeContext";
 
 const ProfileScreen = ({ navigation }) => {
+  const { theme, isDarkMode, toggleTheme } = useTheme();
   const [userInfo, setUserInfo] = useState({
     name: "",
     email: "",
@@ -117,11 +120,6 @@ const ProfileScreen = ({ navigation }) => {
       onPress: () => navigation.navigate("EditProfile"),
     },
     {
-      icon: EventsIcon,
-      title: "My Events",
-      onPress: () => Alert.alert("My Events", "View your registered events"),
-    },
-    {
       icon: NotificationIcon,
       title: "Announcements",
       onPress: () => navigation.navigate("Announcements"),
@@ -144,8 +142,8 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -153,13 +151,13 @@ const ProfileScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#4A6CF7"]}
-            tintColor="#4A6CF7"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
       >
         {/* User Info Section */}
-        <View style={styles.userSection}>
+        <View style={[styles.userSection, { backgroundColor: theme.colors.surface }]}>
           <TouchableOpacity
             onPress={() => navigation.navigate("EditProfile")}
             style={styles.avatarContainer}
@@ -183,35 +181,35 @@ const ProfileScreen = ({ navigation }) => {
                 }
               />
             ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{getInitials()}</Text>
+              <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+                <Text style={[styles.avatarText, { color: theme.colors.onPrimary }]}>{getInitials()}</Text>
               </View>
             )}
           </TouchableOpacity>
-          <Text style={styles.userName}>{userInfo.name}</Text>
-          <Text style={styles.userEmail}>{userInfo.email}</Text>
-          <Text style={styles.memberSince}>
+          <Text style={[styles.userName, { color: theme.colors.onSurface }]}>{userInfo.name}</Text>
+          <Text style={[styles.userEmail, { color: theme.colors.onSurfaceVariant }]}>{userInfo.email}</Text>
+          <Text style={[styles.memberSince, { color: theme.colors.onSurfaceVariant }]}>
             Member since {userInfo.memberSince}
           </Text>
         </View>
 
         {/* Menu Items */}
-        <View style={styles.menuContainer}>
+        <View style={[styles.menuContainer, { backgroundColor: theme.colors.surface }]}>
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
             return (
               <TouchableOpacity
                 key={index}
-                style={styles.menuItem}
+                style={[styles.menuItem, { borderBottomColor: theme.colors.border }]}
                 onPress={item.onPress}
                 activeOpacity={0.7}
               >
                 <View style={styles.menuLeft}>
-                  <IconComponent size={24} />
-                  <Text style={styles.menuText}>{item.title}</Text>
+                  <IconComponent size={24} color={theme.colors.onSurfaceVariant} />
+                  <Text style={[styles.menuText, { color: theme.colors.onSurface }]}>{item.title}</Text>
                 </View>
                 <View style={styles.chevron}>
-                  <Text style={styles.chevronText}>›</Text>
+                  <Text style={[styles.chevronText, { color: theme.colors.onSurfaceVariant }]}>›</Text>
                 </View>
               </TouchableOpacity>
             );
@@ -220,12 +218,12 @@ const ProfileScreen = ({ navigation }) => {
 
         {/* Logout Button */}
         <TouchableOpacity
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: theme.colors.surface }]}
           onPress={handleLogout}
           activeOpacity={0.8}
         >
-          <LogoutIcon size={20} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <LogoutIcon size={20} color={theme.colors.error} />
+          <Text style={[styles.logoutText, { color: theme.colors.error }]}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -235,10 +233,8 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
   },
   userSection: {
-    backgroundColor: "#fff",
     alignItems: "center",
     paddingVertical: 30,
     marginBottom: 8,
@@ -250,7 +246,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#4A6CF7",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -262,25 +257,20 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#fff",
   },
   userName: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1F2937",
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: "#6B7280",
     marginBottom: 8,
   },
   memberSince: {
     fontSize: 12,
-    color: "#9CA3AF",
   },
   menuContainer: {
-    backgroundColor: "#fff",
     paddingVertical: 8,
     marginBottom: 8,
   },
@@ -291,7 +281,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
   },
   menuLeft: {
     flexDirection: "row",
@@ -299,7 +288,6 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 16,
-    color: "#374151",
     marginLeft: 16,
   },
   chevron: {
@@ -310,22 +298,19 @@ const styles = StyleSheet.create({
   },
   chevronText: {
     fontSize: 24,
-    color: "#9CA3AF",
   },
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
     marginHorizontal: 20,
     marginVertical: 20,
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#FEE2E2",
+    borderColor: "rgba(239, 68, 68, 0.2)",
   },
   logoutText: {
-    color: "#EF4444",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,

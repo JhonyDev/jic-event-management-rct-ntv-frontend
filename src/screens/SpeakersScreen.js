@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import {
   ArrowLeftIcon,
@@ -17,8 +18,10 @@ import {
   InfoIcon,
 } from '../components/SvgIcons';
 import eventService from '../services/eventService';
+import { useTheme } from '../context/ThemeContext';
 
 const SpeakersScreen = ({ route, navigation }) => {
+  const { theme } = useTheme();
   const { event } = route.params;
   const [speakers, setSpeakers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,10 +99,34 @@ const SpeakersScreen = ({ route, navigation }) => {
       `Send an email to ${speaker.name}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Send Email', onPress: () => {
-          // In a real app, this would open the email client
-          Alert.alert('Email', `Opening email to ${speaker.email}`);
-        }},
+        {
+          text: 'Send Email',
+          onPress: async () => {
+            try {
+              const subject = encodeURIComponent(`Inquiry about ${event.title}`);
+              const body = encodeURIComponent(`Hello ${speaker.name},\n\nI hope this email finds you well. I attended your session at ${event.title} and would like to connect with you.\n\nBest regards`);
+              const emailUrl = `mailto:${speaker.email}?subject=${subject}&body=${body}`;
+
+              // Try to open the email URL directly without checking canOpenURL
+              // canOpenURL can be unreliable for mailto on some Android devices
+              await Linking.openURL(emailUrl);
+            } catch (error) {
+              console.error('Error opening email:', error);
+              // If opening fails, show fallback with email address
+              Alert.alert(
+                'Open Email App',
+                `Please copy the email address and compose your email manually:\n\n${speaker.email}`,
+                [
+                  { text: 'Copy Email', onPress: () => {
+                    // Note: In a real app, you might want to use Clipboard API
+                    console.log('Email to copy:', speaker.email);
+                  }},
+                  { text: 'OK' }
+                ]
+              );
+            }
+          }
+        },
       ]
     );
   };
@@ -113,29 +140,17 @@ const SpeakersScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ArrowLeftIcon size={24} color="#4A6CF7" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Event Speakers</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar barStyle={theme.colors.statusBar} backgroundColor={theme.colors.background} translucent={true} />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Event Header */}
         <View style={styles.eventHeader}>
-          <View style={styles.iconContainer}>
-            <SpeakersIcon size={48} color="#F59E0B" />
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.accentContainer }]}>
+            <SpeakersIcon size={48} color={theme.colors.accent} />
           </View>
-          <Text style={styles.eventTitle}>Meet Our Speakers</Text>
-          <Text style={styles.eventSubtitle}>
+          <Text style={[styles.eventTitle, { color: theme.colors.onBackground }]}>Meet Our Speakers</Text>
+          <Text style={[styles.eventSubtitle, { color: theme.colors.onSurfaceVariant }]}>
             Expert presenters sharing their knowledge at {event.title}
           </Text>
         </View>
@@ -143,36 +158,36 @@ const SpeakersScreen = ({ route, navigation }) => {
         {/* Loading State */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4A6CF7" />
-            <Text style={styles.loadingText}>Loading speakers...</Text>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}>Loading speakers...</Text>
           </View>
         ) : (
           /* Speakers List */
           <View style={styles.speakersList}>
             {speakers.map((speaker) => (
-            <View key={speaker.id} style={styles.speakerCard}>
+            <View key={speaker.id} style={[styles.speakerCard, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
               {/* Speaker Header */}
               <View style={styles.speakerHeader}>
-                <View style={styles.speakerAvatar}>
-                  <Text style={styles.speakerInitials}>{speaker.avatar}</Text>
+                <View style={[styles.speakerAvatar, { backgroundColor: theme.colors.primary }]}>
+                  <Text style={[styles.speakerInitials, { color: theme.colors.onPrimary }]}>{speaker.avatar}</Text>
                 </View>
                 <View style={styles.speakerInfo}>
-                  <Text style={styles.speakerName}>{speaker.name}</Text>
-                  <Text style={styles.speakerTitle}>{speaker.title}</Text>
-                  <Text style={styles.speakerCompany}>{speaker.company}</Text>
+                  <Text style={[styles.speakerName, { color: theme.colors.onSurface }]}>{speaker.name}</Text>
+                  <Text style={[styles.speakerTitle, { color: theme.colors.primary }]}>{speaker.title}</Text>
+                  <Text style={[styles.speakerCompany, { color: theme.colors.onSurfaceVariant }]}>{speaker.company}</Text>
                 </View>
               </View>
 
               {/* Speaker Bio */}
-              <Text style={styles.speakerBio}>{speaker.bio}</Text>
+              <Text style={[styles.speakerBio, { color: theme.colors.onSurfaceVariant }]}>{speaker.bio}</Text>
 
               {/* Sessions */}
               <View style={styles.sessionsSection}>
-                <Text style={styles.sectionTitle}>Sessions</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Sessions</Text>
                 <View style={styles.sessionsList}>
                   {speaker.sessions.map((session, index) => (
-                    <View key={index} style={styles.sessionBadge}>
-                      <Text style={styles.sessionText}>{session}</Text>
+                    <View key={index} style={[styles.sessionBadge, { backgroundColor: theme.colors.secondary }]}>
+                      <Text style={[styles.sessionText, { color: theme.colors.onSecondary }]}>{session}</Text>
                     </View>
                   ))}
                 </View>
@@ -180,11 +195,11 @@ const SpeakersScreen = ({ route, navigation }) => {
 
               {/* Expertise */}
               <View style={styles.expertiseSection}>
-                <Text style={styles.sectionTitle}>Expertise</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Expertise</Text>
                 <View style={styles.expertiseList}>
                   {speaker.expertise.map((skill, index) => (
-                    <View key={index} style={styles.expertiseBadge}>
-                      <Text style={styles.expertiseText}>{skill}</Text>
+                    <View key={index} style={[styles.expertiseBadge, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}>
+                      <Text style={[styles.expertiseText, { color: theme.colors.onSurfaceVariant }]}>{skill}</Text>
                     </View>
                   ))}
                 </View>
@@ -193,19 +208,19 @@ const SpeakersScreen = ({ route, navigation }) => {
               {/* Actions */}
               <View style={styles.speakerActions}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={[styles.actionButton, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}
                   onPress={() => handleViewSpeakerDetail(speaker)}
                 >
-                  <InfoIcon size={16} color="#4A6CF7" />
-                  <Text style={styles.actionButtonText}>View Details</Text>
+                  <InfoIcon size={16} color={theme.colors.primary} />
+                  <Text style={[styles.actionButtonText, { color: theme.colors.onSurface }]}>View Details</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.primaryActionButton]}
+                  style={[styles.actionButton, { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}
                   onPress={() => handleContactSpeaker(speaker)}
                 >
-                  <EmailIcon size={16} color="#FFFFFF" />
-                  <Text style={[styles.actionButtonText, styles.primaryActionButtonText]}>Contact</Text>
+                  <EmailIcon size={16} color={theme.colors.onPrimary} />
+                  <Text style={[styles.actionButtonText, { color: theme.colors.onPrimary }]}>Contact</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -220,36 +235,8 @@ const SpeakersScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-
-  placeholder: {
-    width: 40,
-  },
 
   scrollView: {
     flex: 1,
@@ -269,7 +256,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FEF3C7',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -278,14 +264,12 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 8,
   },
 
   eventSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -295,14 +279,8 @@ const styles = StyleSheet.create({
   },
 
   speakerCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 
   speakerHeader: {
@@ -315,7 +293,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#4A6CF7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -324,7 +301,6 @@ const styles = StyleSheet.create({
   speakerInitials: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
   },
 
   speakerInfo: {
@@ -334,25 +310,21 @@ const styles = StyleSheet.create({
   speakerName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 4,
   },
 
   speakerTitle: {
     fontSize: 14,
-    color: '#4A6CF7',
     fontWeight: '500',
     marginBottom: 2,
   },
 
   speakerCompany: {
     fontSize: 14,
-    color: '#6B7280',
   },
 
   speakerBio: {
     fontSize: 14,
-    color: '#374151',
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -364,7 +336,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 8,
   },
 
@@ -375,7 +346,6 @@ const styles = StyleSheet.create({
   },
 
   sessionBadge: {
-    backgroundColor: '#10B981',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -384,7 +354,6 @@ const styles = StyleSheet.create({
   sessionText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#FFFFFF',
   },
 
   expertiseSection: {
@@ -398,9 +367,7 @@ const styles = StyleSheet.create({
   },
 
   expertiseBadge: {
-    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -409,7 +376,6 @@ const styles = StyleSheet.create({
   expertiseText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
   },
 
   speakerActions: {
@@ -426,24 +392,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
     gap: 8,
-  },
-
-  primaryActionButton: {
-    backgroundColor: '#4A6CF7',
-    borderColor: '#4A6CF7',
   },
 
   actionButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
-  },
-
-  primaryActionButtonText: {
-    color: '#FFFFFF',
   },
 
   loadingContainer: {
@@ -455,7 +409,6 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
     marginTop: 12,
   },
 });

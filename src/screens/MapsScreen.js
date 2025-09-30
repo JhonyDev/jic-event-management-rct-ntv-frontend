@@ -22,8 +22,10 @@ import {
   InfoCircleIcon,
 } from "../components/SvgIcons";
 import eventService from "../services/eventService";
+import { useTheme } from "../context/ThemeContext";
 
 const MapsScreen = ({ route, navigation }) => {
+  const { theme } = useTheme();
   const { event } = route.params;
   const [locationDetails, setLocationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -99,10 +101,10 @@ const MapsScreen = ({ route, navigation }) => {
   const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
+        barStyle={theme.colors.statusBar}
+        backgroundColor={theme.colors.background}
         translucent={true}
       />
 
@@ -112,11 +114,11 @@ const MapsScreen = ({ route, navigation }) => {
       >
         {/* Event Header */}
         <View style={styles.eventHeader}>
-          <View style={styles.iconContainer}>
-            <MapIcon size={48} color="#EF4444" />
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.errorContainer }]}>
+            <MapIcon size={48} color={theme.colors.error} />
           </View>
-          <Text style={styles.eventTitle}>Event Location</Text>
-          <Text style={styles.eventSubtitle}>
+          <Text style={[styles.eventTitle, { color: theme.colors.onBackground }]}>Event Location</Text>
+          <Text style={[styles.eventSubtitle, { color: theme.colors.onSurfaceVariant }]}>
             Find your way to {event.title}
           </Text>
         </View>
@@ -124,20 +126,20 @@ const MapsScreen = ({ route, navigation }) => {
         {/* Loading State */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4A6CF7" />
-            <Text style={styles.loadingText}>Loading location details...</Text>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}>Loading location details...</Text>
           </View>
         ) : locationDetails ? (
           <>
             {/* Venue Information */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Venue Details</Text>
+            <View style={[styles.card, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+              <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Venue Details</Text>
 
               <View style={styles.venueInfo}>
-                <Text style={styles.venueName}>{locationDetails.venue}</Text>
+                <Text style={[styles.venueName, { color: theme.colors.onSurface }]}>{locationDetails.venue}</Text>
                 <View style={styles.addressRow}>
-                  <LocationIcon size={16} color="#6B7280" />
-                  <Text style={styles.venueAddress}>
+                  <LocationIcon size={16} color={theme.colors.onSurfaceVariant} />
+                  <Text style={[styles.venueAddress, { color: theme.colors.onSurfaceVariant }]}>
                     {locationDetails.address}
                   </Text>
                 </View>
@@ -146,17 +148,17 @@ const MapsScreen = ({ route, navigation }) => {
               {/* Action Buttons */}
               <View style={styles.actionButtons}>
                 <TouchableOpacity
-                  style={styles.primaryButton}
+                  style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
                   onPress={handleGetDirections}
                 >
-                  <Text style={styles.primaryButtonText}>Get Directions</Text>
+                  <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>Get Directions</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.secondaryButton}
+                  style={[styles.secondaryButton, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}
                   onPress={handleOpenMaps}
                 >
-                  <Text style={styles.secondaryButtonText}>Open in Maps</Text>
+                  <Text style={[styles.secondaryButtonText, { color: theme.colors.onSurfaceVariant }]}>Open in Maps</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -164,14 +166,14 @@ const MapsScreen = ({ route, navigation }) => {
             {/* Venue Maps */}
             {locationDetails.venue_maps &&
             locationDetails.venue_maps.length > 0 ? (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Venue Maps</Text>
+              <View style={[styles.card, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+                <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Venue Maps</Text>
 
                 {locationDetails.venue_maps.map((venueMap, index) => (
                   <View key={venueMap.id} style={styles.venueMapContainer}>
-                    <Text style={styles.venueMapTitle}>{venueMap.title}</Text>
+                    <Text style={[styles.venueMapTitle, { color: theme.colors.onSurface }]}>{venueMap.title}</Text>
                     {venueMap.description && (
-                      <Text style={styles.venueMapDescription}>
+                      <Text style={[styles.venueMapDescription, { color: theme.colors.onSurfaceVariant }]}>
                         {venueMap.description}
                       </Text>
                     )}
@@ -186,37 +188,31 @@ const MapsScreen = ({ route, navigation }) => {
                         />
                       </TouchableOpacity>
                     )}
-                    <TouchableOpacity
-                      style={styles.secondaryButton}
-                      onPress={() => handleViewVenueMap(index)}
-                    >
-                      <Text style={styles.secondaryButtonText}>View</Text>
-                    </TouchableOpacity>
                     {index < locationDetails.venue_maps.length - 1 && (
-                      <View style={styles.mapSeparator} />
+                      <View style={[styles.mapSeparator, { backgroundColor: theme.colors.border }]} />
                     )}
                   </View>
                 ))}
               </View>
             ) : (
               /* Interactive Map Placeholder */
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Map View</Text>
+              <View style={[styles.card, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+                <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Map View</Text>
 
                 <View style={styles.mapPlaceholder}>
-                  <MapIcon size={64} color="#9CA3AF" />
-                  <Text style={styles.mapPlaceholderTitle}>
+                  <MapIcon size={64} color={theme.colors.onSurfaceVariant} />
+                  <Text style={[styles.mapPlaceholderTitle, { color: theme.colors.onSurface }]}>
                     Interactive Map
                   </Text>
-                  <Text style={styles.mapPlaceholderSubtitle}>
+                  <Text style={[styles.mapPlaceholderSubtitle, { color: theme.colors.onSurfaceVariant }]}>
                     Tap "Open in Maps" to view the interactive map and get
                     real-time directions
                   </Text>
                   <TouchableOpacity
-                    style={styles.mapButton}
+                    style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
                     onPress={handleOpenMaps}
                   >
-                    <Text style={styles.mapButtonText}>View Map</Text>
+                    <Text style={[styles.mapButtonText, { color: theme.colors.onPrimary }]}>View Map</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -276,7 +272,6 @@ const MapsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
   },
 
   scrollView: {
@@ -298,7 +293,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#FEF2F2",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -307,33 +301,24 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1F2937",
     textAlign: "center",
     marginBottom: 8,
   },
 
   eventSubtitle: {
     fontSize: 16,
-    color: "#6B7280",
     textAlign: "center",
   },
 
   card: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 
   cardTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 16,
   },
 
@@ -344,7 +329,6 @@ const styles = StyleSheet.create({
   venueName: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 8,
   },
 
@@ -355,7 +339,6 @@ const styles = StyleSheet.create({
 
   venueAddress: {
     fontSize: 14,
-    color: "#6B7280",
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
@@ -368,30 +351,25 @@ const styles = StyleSheet.create({
 
   primaryButton: {
     flex: 1,
-    backgroundColor: "#4A6CF7",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
   },
 
   primaryButtonText: {
-    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
   },
 
   secondaryButton: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
   },
 
   secondaryButtonText: {
-    color: "#374151",
     fontSize: 14,
     fontWeight: "500",
   },
@@ -404,28 +382,24 @@ const styles = StyleSheet.create({
   mapPlaceholderTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1F2937",
     marginTop: 16,
     marginBottom: 8,
   },
 
   mapPlaceholderSubtitle: {
     fontSize: 14,
-    color: "#6B7280",
     textAlign: "center",
     lineHeight: 20,
     marginBottom: 20,
   },
 
   mapButton: {
-    backgroundColor: "#4A6CF7",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
 
   mapButtonText: {
-    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -439,7 +413,6 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 16,
-    color: "#6B7280",
     marginTop: 12,
   },
 
@@ -450,13 +423,11 @@ const styles = StyleSheet.create({
   venueMapTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1F2937",
     marginBottom: 8,
   },
 
   venueMapDescription: {
     fontSize: 14,
-    color: "#6B7280",
     marginBottom: 12,
   },
 
@@ -468,7 +439,6 @@ const styles = StyleSheet.create({
 
   mapSeparator: {
     height: 1,
-    backgroundColor: "#E5E7EB",
     marginVertical: 16,
   },
 

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  Image,
 } from "react-native";
 import {
   QRScanIcon,
@@ -16,6 +17,7 @@ import {
   UsersIcon,
   ClockIcon,
 } from "./SvgIcons";
+import { useTheme } from "../context/ThemeContext";
 
 const { width } = Dimensions.get("window");
 const cardPadding = 16;
@@ -77,7 +79,8 @@ export const BaseCard = ({
 };
 
 // Welcome Card Component
-export const WelcomeCard = ({ userName, onPress }) => {
+export const WelcomeCard = ({ userName, onPress, nextEvent }) => {
+  const { theme } = useTheme();
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Morning";
@@ -91,17 +94,62 @@ export const WelcomeCard = ({ userName, onPress }) => {
     return `Good ${timeOfDay}, ${firstName}!`;
   };
 
+  const getNextEventText = () => {
+    if (!nextEvent) {
+      return "Your next event: N/A";
+    }
+
+    const eventDate = new Date(nextEvent.date);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    let dateText;
+    if (eventDate.toDateString() === today.toDateString()) {
+      dateText = "Today";
+    } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+      dateText = "Tomorrow";
+    } else {
+      dateText = eventDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    return `Your next event: ${dateText}`;
+  };
+
   return (
-    <BaseCard style={styles.welcomeCard} onPress={onPress}>
+    <BaseCard
+      style={[
+        styles.welcomeCard,
+        { backgroundColor: theme.colors.surfaceVariant, ...theme.shadows.md },
+      ]}
+      onPress={onPress}
+    >
       <View style={styles.welcomeContent}>
-        <Text style={styles.welcomeGreeting}>{getWelcomeMessage()}</Text>
-        <Text style={styles.welcomeSubtitle}>
+        <Text
+          style={[styles.welcomeGreeting, { color: theme.colors.onSurface }]}
+        >
+          {getWelcomeMessage()}
+        </Text>
+        <Text
+          style={[
+            styles.welcomeSubtitle,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
+        >
           Ready to discover amazing events?
         </Text>
         <View style={styles.welcomeFooter}>
-          <CalendarIcon size={16} color="#FFFFFF" />
-          <Text style={styles.welcomeFooterText}>
-            Your next event: Tomorrow
+          <CalendarIcon size={16} color={theme.colors.primary} />
+          <Text
+            style={[
+              styles.welcomeFooterText,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            {getNextEventText()}
           </Text>
         </View>
       </View>
@@ -115,19 +163,38 @@ export const QuickActionCard = ({
   title,
   subtitle,
   onPress,
-  backgroundColor = "#F8FAFC",
-  textColor = "#1F2937",
+  backgroundColor,
+  textColor,
   isPrimary = false,
 }) => {
+  const { theme } = useTheme();
+
+  const defaultBgColor =
+    backgroundColor ||
+    (isPrimary ? theme.colors.primary : theme.colors.surfaceVariant);
+  const defaultTextColor =
+    textColor || (isPrimary ? theme.colors.onPrimary : theme.colors.onSurface);
   const cardStyle = isPrimary
-    ? styles.primaryActionCard
-    : styles.secondaryActionCard;
-  const titleColor = isPrimary ? "#FFFFFF" : textColor;
-  const subtitleColor = isPrimary ? "#E5E7EB" : "#6B7280";
+    ? [
+        styles.primaryActionCard,
+        { backgroundColor: defaultBgColor, ...theme.shadows.sm },
+      ]
+    : [
+        styles.secondaryActionCard,
+        {
+          backgroundColor: defaultBgColor,
+          borderColor: theme.colors.border,
+          ...theme.shadows.sm,
+        },
+      ];
+  const titleColor = isPrimary ? theme.colors.onPrimary : defaultTextColor;
+  const subtitleColor = isPrimary
+    ? theme.colors.onPrimary
+    : theme.colors.onSurfaceVariant;
 
   return (
     <View style={{ flex: 1 }}>
-      <BaseCard style={[cardStyle, { backgroundColor }]} onPress={onPress}>
+      <BaseCard style={cardStyle} onPress={onPress}>
         <View style={styles.actionCardContent}>
           <View style={styles.actionIconContainer}>{icon}</View>
           <Text style={[styles.actionTitle, { color: titleColor }]}>
@@ -148,7 +215,7 @@ export const QRScannerCard = ({ onPress }) => {
     <BaseCard style={styles.qrHeroCard} onPress={onPress}>
       <View style={styles.qrHeroContent}>
         <View style={styles.qrIconContainer}>
-          <QRScanIcon size={48} color="#4A6CF7" />
+          <QRScanIcon size={48} color="#FFFFFF" />
         </View>
         <Text style={styles.qrHeroTitle}>Scan QR Code</Text>
         <Text style={styles.qrHeroSubtitle}>
@@ -164,7 +231,15 @@ export const QRScannerCard = ({ onPress }) => {
 };
 
 // Enhanced Event Card
-export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegistered = false }) => {
+export const EventCard = ({
+  event,
+  onJoin,
+  onLearnMore,
+  loading = false,
+  isRegistered = false,
+}) => {
+  const { theme } = useTheme();
+
   const formatFriendlyDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -178,6 +253,7 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
       return `Today, ${date.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
+        timeZone: 'UTC'
       })}`;
     }
 
@@ -185,6 +261,7 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
       return `Tomorrow, ${date.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
+        timeZone: 'UTC'
       })}`;
     }
 
@@ -194,6 +271,7 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
       day: "numeric",
       hour: "numeric",
       minute: "2-digit",
+      timeZone: 'UTC'
     });
   };
 
@@ -232,13 +310,39 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
   const availabilityInfo = getAvailabilityInfo();
 
   return (
-    <BaseCard style={styles.eventCard}>
+    <BaseCard
+      style={[
+        styles.eventCard,
+        { backgroundColor: theme.colors.card, ...theme.shadows.sm },
+      ]}
+    >
+      {/* Event Image */}
+      {event.image && (
+        <View style={styles.eventImageContainer}>
+          <Image
+            source={{ uri: event.image }}
+            style={styles.eventImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
+
       {/* Event Header */}
       <View style={styles.eventHeader}>
-        <View style={styles.eventCategory}>
-          <Text style={styles.categoryText}>{event.category || "Event"}</Text>
+        <View
+          style={[
+            styles.eventCategory,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
+        >
+          <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
+            {event.category || "Event"}
+          </Text>
         </View>
-        <Text style={styles.eventTitle} numberOfLines={2}>
+        <Text
+          style={[styles.eventTitle, { color: theme.colors.onSurface }]}
+          numberOfLines={2}
+        >
           {event.title}
         </Text>
       </View>
@@ -246,19 +350,24 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
       {/* Event Info */}
       <View style={styles.eventInfo}>
         <View style={styles.infoRow}>
-          <CalendarIcon size={16} color="#6B7280" />
-          <Text style={styles.infoText}>{formatFriendlyDate(event.date)}</Text>
+          <CalendarIcon size={16} color={theme.colors.onSurfaceVariant} />
+          <Text style={[styles.infoText, { color: theme.colors.onSurface }]}>
+            {formatFriendlyDate(event.date)}
+          </Text>
         </View>
 
         <View style={styles.infoRow}>
-          <LocationIcon size={16} color="#6B7280" />
-          <Text style={styles.infoText} numberOfLines={1}>
+          <LocationIcon size={16} color={theme.colors.onSurfaceVariant} />
+          <Text
+            style={[styles.infoText, { color: theme.colors.onSurface }]}
+            numberOfLines={1}
+          >
             {event.location}
           </Text>
         </View>
 
         <View style={styles.infoRow}>
-          <UsersIcon size={16} color="#6B7280" />
+          <UsersIcon size={16} color={theme.colors.onSurfaceVariant} />
           <Text style={[styles.infoText, { color: availabilityInfo.color }]}>
             {availabilityInfo.text}
           </Text>
@@ -270,12 +379,21 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
         <TouchableOpacity
           style={[
             styles.secondaryButton,
-            isRegistered && { flex: 1 } // Take full width when registered
+            {
+              backgroundColor: theme.colors.surfaceVariant,
+              borderColor: theme.colors.border,
+            },
+            isRegistered && { flex: 1 }, // Take full width when registered
           ]}
           onPress={onLearnMore}
           disabled={loading}
         >
-          <Text style={styles.secondaryButtonText}>
+          <Text
+            style={[
+              styles.secondaryButtonText,
+              { color: theme.colors.onSurface },
+            ]}
+          >
             {isRegistered ? "View Event Details" : "Learn More"}
           </Text>
         </TouchableOpacity>
@@ -284,13 +402,24 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
           <TouchableOpacity
             style={[
               styles.primaryButton,
-              availabilityInfo.urgent && styles.urgentButton,
-              loading && styles.disabledButton,
+              { backgroundColor: theme.colors.primary },
+              availabilityInfo.urgent && {
+                backgroundColor: theme.colors.warning,
+              },
+              loading && {
+                backgroundColor: theme.colors.disabled,
+                opacity: 0.6,
+              },
             ]}
             onPress={onJoin}
             disabled={loading || availabilityInfo.text === "Event Full"}
           >
-            <Text style={styles.primaryButtonText}>
+            <Text
+              style={[
+                styles.primaryButtonText,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
               {availabilityInfo.text === "Event Full" ? "Full" : "Join Event"}
             </Text>
           </TouchableOpacity>
@@ -302,6 +431,7 @@ export const EventCard = ({ event, onJoin, onLearnMore, loading = false, isRegis
 
 // Loading Card Skeleton
 export const LoadingCard = () => {
+  const { theme } = useTheme();
   const [shimmerAnimation] = useState(new Animated.Value(0));
 
   React.useEffect(() => {
@@ -333,13 +463,48 @@ export const LoadingCard = () => {
   };
 
   return (
-    <View style={styles.loadingCard}>
-      <Animated.View style={[styles.shimmerTitle, shimmerStyle]} />
-      <Animated.View style={[styles.shimmerText, shimmerStyle]} />
-      <Animated.View style={[styles.shimmerText, shimmerStyle]} />
+    <View
+      style={[
+        styles.loadingCard,
+        { backgroundColor: theme.colors.card, ...theme.shadows.sm },
+      ]}
+    >
+      <Animated.View
+        style={[
+          styles.shimmerTitle,
+          { backgroundColor: theme.colors.outline },
+          shimmerStyle,
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.shimmerText,
+          { backgroundColor: theme.colors.outline },
+          shimmerStyle,
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.shimmerText,
+          { backgroundColor: theme.colors.outline },
+          shimmerStyle,
+        ]}
+      />
       <View style={styles.shimmerButtonRow}>
-        <Animated.View style={[styles.shimmerButton, shimmerStyle]} />
-        <Animated.View style={[styles.shimmerButton, shimmerStyle]} />
+        <Animated.View
+          style={[
+            styles.shimmerButton,
+            { backgroundColor: theme.colors.outline },
+            shimmerStyle,
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.shimmerButton,
+            { backgroundColor: theme.colors.outline },
+            shimmerStyle,
+          ]}
+        />
       </View>
     </View>
   );
@@ -348,15 +513,9 @@ export const LoadingCard = () => {
 const styles = StyleSheet.create({
   // Base Card Styles
   baseCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 
   disabledCard: {
@@ -365,7 +524,6 @@ const styles = StyleSheet.create({
 
   // Welcome Card Styles
   welcomeCard: {
-    backgroundColor: "#4A6CF7",
     marginBottom: 20,
     paddingVertical: 24,
   },
@@ -377,13 +535,11 @@ const styles = StyleSheet.create({
   welcomeGreeting: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFFFFF",
     marginBottom: 8,
   },
 
   welcomeSubtitle: {
     fontSize: 16,
-    color: "#E5E7EB",
     textAlign: "center",
     marginBottom: 16,
   },
@@ -395,21 +551,17 @@ const styles = StyleSheet.create({
 
   welcomeFooterText: {
     fontSize: 14,
-    color: "#E5E7EB",
     marginLeft: 6,
   },
 
   // Quick Action Card Styles
   primaryActionCard: {
-    backgroundColor: "#4A6CF7",
     flex: 1,
     aspectRatio: 1,
   },
 
   secondaryActionCard: {
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     flex: 1,
     aspectRatio: 1,
   },
@@ -503,7 +655,6 @@ const styles = StyleSheet.create({
 
   eventCategory: {
     alignSelf: "flex-start",
-    backgroundColor: "#EEF2FF",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -512,15 +663,29 @@ const styles = StyleSheet.create({
 
   categoryText: {
     fontSize: 12,
-    color: "#4A6CF7",
     fontWeight: "500",
   },
 
   eventTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1F2937",
     lineHeight: 24,
+  },
+
+  eventImageContainer: {
+    marginTop: -16,
+    marginLeft: -16,
+    marginRight: -16,
+    marginBottom: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    overflow: "hidden",
+  },
+
+  eventImage: {
+    width: "100%",
+    minHeight: 120,
+    maxHeight: 200,
   },
 
   eventInfo: {
@@ -535,7 +700,6 @@ const styles = StyleSheet.create({
 
   infoText: {
     fontSize: 14,
-    color: "#374151",
     marginLeft: 8,
     flex: 1,
   },
@@ -547,9 +711,7 @@ const styles = StyleSheet.create({
 
   secondaryButton: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
@@ -557,49 +719,30 @@ const styles = StyleSheet.create({
 
   secondaryButtonText: {
     fontSize: 14,
-    color: "#374151",
     fontWeight: "500",
   },
 
   primaryButton: {
     flex: 2,
-    backgroundColor: "#4A6CF7",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
   },
 
-  urgentButton: {
-    backgroundColor: "#F59E0B",
-  },
-
-  disabledButton: {
-    backgroundColor: "#9CA3AF",
-    opacity: 0.6,
-  },
-
   primaryButtonText: {
     fontSize: 14,
-    color: "#FFFFFF",
     fontWeight: "600",
   },
 
   // Loading Card Styles
   loadingCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
 
   shimmerTitle: {
     height: 20,
-    backgroundColor: "#E5E7EB",
     borderRadius: 4,
     marginBottom: 12,
     width: "80%",
@@ -607,7 +750,6 @@ const styles = StyleSheet.create({
 
   shimmerText: {
     height: 14,
-    backgroundColor: "#E5E7EB",
     borderRadius: 4,
     marginBottom: 8,
     width: "60%",
@@ -621,7 +763,6 @@ const styles = StyleSheet.create({
 
   shimmerButton: {
     height: 36,
-    backgroundColor: "#E5E7EB",
     borderRadius: 8,
     flex: 1,
   },
