@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Text,
   TextInput as RNTextInput,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -114,18 +115,11 @@ const LoginScreen = ({ navigation }) => {
               ]}
             >
               <View style={styles.logoContainer}>
-                <View
-                  style={[
-                    styles.logoCircle,
-                    { backgroundColor: theme.colors.surface },
-                  ]}
-                >
-                  <Icon
-                    name="calendar-check"
-                    size={32}
-                    color={theme.colors.primary}
-                  />
-                </View>
+                <Image
+                  source={require("../../assets/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
               </View>
 
               <Text
@@ -134,15 +128,7 @@ const LoginScreen = ({ navigation }) => {
                   { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
                 ]}
               >
-                JIC
-              </Text>
-              <Text
-                style={[
-                  styles.companyTagline,
-                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
-                ]}
-              >
-                Event Management
+                Multiverso
               </Text>
               <Text
                 style={[
@@ -154,7 +140,7 @@ const LoginScreen = ({ navigation }) => {
                   },
                 ]}
               >
-                Platform
+                Event Management
               </Text>
             </Animated.View>
 
@@ -419,22 +405,11 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   logoContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  logo: {
+    width: 100,
+    height: 100,
   },
   companyName: {
     fontSize: 36,

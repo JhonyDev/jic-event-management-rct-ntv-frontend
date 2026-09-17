@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeftIcon,
   AgendaIcon,
   ClockIcon,
   LocationIcon,
+  CreditCardIcon,
+  DollarIcon,
 } from '../components/SvgIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import eventService from '../services/eventService';
 import { useTheme } from '../context/ThemeContext';
 
@@ -25,22 +30,88 @@ const AgendaScreen = ({ route, navigation }) => {
   const [agendaData, setAgendaData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAgendaData();
-  }, []);
+  // Fetch data on initial mount and when screen comes into focus
+  // useFocusEffect handles both cases, so no need for separate useEffect
+  useFocusEffect(
+    useCallback(() => {
+      fetchAgendaData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
 
   const fetchAgendaData = async () => {
     try {
       setLoading(true);
       // Try to fetch from API first
+      console.log('Fetching agenda data for event:', event.id);
       const data = await eventService.getEventAgenda(event.id);
+      console.log('Agenda data received from API:', JSON.stringify(data, null, 2));
+
+      // Log sessions with attachments for debugging
+      let attachmentCount = 0;
+      data.forEach(agenda => {
+        agenda.sessions?.forEach(session => {
+          if (session.has_attachments) {
+            console.log(`✅ Session "${session.title}" has ${session.attachment_count} attachments`);
+            attachmentCount++;
+          }
+        });
+      });
+      console.log(`Total sessions with attachments: ${attachmentCount}`);
+
       setAgendaData(data);
     } catch (error) {
-      console.log('Using mock agenda data:', error.message);
+      console.log('Error fetching agenda, using mock data:', error.message);
       // Fall back to mock data if API not available
-      setAgendaData(getMockAgendaData());
+      const mockData = getMockAgendaData();
+      console.log('Using mock agenda data');
+      setAgendaData(mockData);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSessionRegister = async (sessionId) => {
+    try {
+      // Find the session to check if payment is required
+      let session = null;
+      agendaData.forEach((agenda) => {
+        const foundSession = agenda.sessions?.find(s => s.id === sessionId);
+        if (foundSession) {
+          session = foundSession;
+        }
+      });
+
+      if (session && session.is_paid_session) {
+        // Navigate to payment screen
+        navigation.navigate("Payment", {
+          type: 'session',
+          id: sessionId,
+          amount: session.session_fee,
+          title: session.title,
+          paymentMethods: session.payment_methods || ['mwallet', 'card'],
+        });
+      } else {
+        // Free session - register directly
+        const response = await eventService.registerForSession(sessionId);
+        Alert.alert('Success', response.message || 'Successfully registered for session');
+        // Refresh agenda data to update registration status
+        fetchAgendaData();
+      }
+    } catch (error) {
+      console.error('Error registering for session:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Failed to register for session');
+    }
+  };
+
+  const handleSessionUnregister = async (sessionId) => {
+    try {
+      const response = await eventService.unregisterFromSession(sessionId);
+      Alert.alert('Success', response.message || 'Successfully unregistered from session');
+      // Refresh agenda data to update registration status
+      fetchAgendaData();
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.error || 'Failed to unregister from session');
     }
   };
 
@@ -183,6 +254,57 @@ const AgendaScreen = ({ route, navigation }) => {
     }
   };
 
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'youtube':
+        return 'youtube';
+      case 'facebook':
+        return 'facebook';
+      case 'instagram':
+        return 'instagram';
+      case 'tiktok':
+        return 'music-note';
+      case 'twitter':
+        return 'twitter';
+      case 'zoom':
+        return 'video';
+      default:
+        return 'link-variant';
+    }
+  };
+
+  const getPlatformColor = (platform) => {
+    switch (platform) {
+      case 'youtube':
+        return '#FF0000';
+      case 'facebook':
+        return '#1877F2';
+      case 'instagram':
+        return '#E4405F';
+      case 'tiktok':
+        return '#000000';
+      case 'twitter':
+        return '#1DA1F2';
+      case 'zoom':
+        return '#2D8CFF';
+      default:
+        return theme.colors.primary;
+    }
+  };
+
+  const handleOpenStream = async (url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Cannot open this URL');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open live stream');
+    }
+  };
+
   // Group agendas by day
   const groupAgendasByDay = (agendas) => {
     const groupedByDay = {};
@@ -320,6 +442,91 @@ const AgendaScreen = ({ route, navigation }) => {
                                     </View>
                                   </View>
                                 ) : null}
+
+                                {/* Live Stream Links */}
+                                {session.live_stream_urls && session.live_stream_urls.length > 0 && (
+                                  <View style={styles.liveStreamsContainer}>
+                                    <Text style={[styles.liveStreamsTitle, { color: theme.colors.onSurface }]}>
+                                      🔴 Live Streams
+                                    </Text>
+                                    <View style={styles.streamLinksRow}>
+                                      {session.live_stream_urls.map((stream, streamIndex) => (
+                                        <TouchableOpacity
+                                          key={streamIndex}
+                                          style={[
+                                            styles.streamLink,
+                                            { backgroundColor: theme.colors.surface, borderColor: getPlatformColor(stream.platform) }
+                                          ]}
+                                          onPress={() => handleOpenStream(stream.stream_url)}
+                                        >
+                                          <Icon
+                                            name={getPlatformIcon(stream.platform)}
+                                            size={20}
+                                            color={getPlatformColor(stream.platform)}
+                                          />
+                                          <Text style={[styles.streamLinkText, { color: theme.colors.onSurface }]}>
+                                            {stream.platform.charAt(0).toUpperCase() + stream.platform.slice(1)}
+                                          </Text>
+                                        </TouchableOpacity>
+                                      ))}
+                                    </View>
+                                  </View>
+                                )}
+
+                                {/* Payment Badge */}
+                                {session.is_paid_session && (
+                                  <View style={[styles.sessionPaymentBadge, { backgroundColor: theme.colors.primaryContainer }]}>
+                                    <CreditCardIcon size={18} color={theme.colors.primary} />
+                                    <Text style={[styles.sessionPaymentText, { color: theme.colors.primary }]}>
+                                      Paid Session - PKR {session.session_fee}
+                                    </Text>
+                                  </View>
+                                )}
+
+                                {/* Action Buttons */}
+                                {(session.allow_registration || session.has_attachments || session.has_live_streams) && (
+                                  <View style={styles.registrationContainer}>
+                                    {/* Show slots info if available for registration sessions */}
+                                    {session.allow_registration && session.slots_available && (
+                                      <Text style={[styles.slotsInfo, { color: theme.colors.onSurfaceVariant }]}>
+                                        {session.slots_taken}/{session.slots_available} slots filled
+                                      </Text>
+                                    )}
+
+                                    <View style={styles.sessionButtonsRow}>
+                                      {/* Live Stream Button - Show if session has live streams */}
+                                      {session.has_live_streams && (
+                                        <TouchableOpacity
+                                          style={[styles.liveStreamButton, { backgroundColor: '#EF4444' }]}
+                                          onPress={() => navigation.navigate('LiveStreams', {
+                                            sessionId: session.id,
+                                            sessionTitle: session.title
+                                          })}
+                                        >
+                                          <Text style={[styles.liveStreamButtonText, { color: '#FFFFFF' }]}>
+                                            🔴 Live Streams
+                                          </Text>
+                                        </TouchableOpacity>
+                                      )}
+
+                                      {/* View Attachments Button - Only show if session has attachments */}
+                                      {session.has_attachments && (
+                                        <TouchableOpacity
+                                          style={[styles.attachmentsButton, { backgroundColor: theme.colors.primary }]}
+                                          onPress={() => navigation.navigate('SessionAttachments', {
+                                            sessionId: session.id,
+                                            sessionTitle: session.title,
+                                            eventId: event.id
+                                          })}
+                                        >
+                                          <Text style={[styles.attachmentsButtonText, { color: '#FFFFFF' }]}>
+                                            📎 Attachments{session.attachment_count > 0 ? ` (${session.attachment_count})` : ''}
+                                          </Text>
+                                        </TouchableOpacity>
+                                      )}
+                                    </View>
+                                  </View>
+                                )}
                               </View>
                             </View>
                           </View>
@@ -597,6 +804,123 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     marginTop: 12,
+  },
+
+  // Registration styles
+  registrationContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+
+  slotsInfo: {
+    fontSize: 12,
+    marginBottom: 8,
+  },
+
+  registrationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+
+  unregisterButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+
+  fullButton: {
+    opacity: 0.7,
+  },
+
+  registrationButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  sessionButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+
+  attachmentsButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+
+  attachmentsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  liveStreamButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginRight: 8,
+  },
+
+  liveStreamButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Payment badge styles
+  sessionPaymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 6,
+    alignSelf: 'flex-start',
+  },
+
+  sessionPaymentText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  // Live streams styles
+  liveStreamsContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+
+  liveStreamsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+
+  streamLinksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+
+  streamLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    gap: 6,
+  },
+
+  streamLinkText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

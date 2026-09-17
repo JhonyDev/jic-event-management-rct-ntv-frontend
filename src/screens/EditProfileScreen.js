@@ -143,7 +143,22 @@ const EditProfileScreen = ({ navigation }) => {
   };
 
   const handleSave = async () => {
-    if (!validateProfile()) return;
+    // Clear all errors first
+    setErrors({});
+
+    // Validate profile
+    if (!validateProfile()) {
+      Alert.alert("Validation Error", "Please fill in all required fields correctly.");
+      return;
+    }
+
+    // Validate password if any password field is filled
+    if (passwordData.current_password || passwordData.new_password || passwordData.confirm_password) {
+      if (!validatePassword()) {
+        Alert.alert("Validation Error", "Please check your password fields.");
+        return;
+      }
+    }
 
     setLoading(true);
     try {
@@ -156,11 +171,6 @@ const EditProfileScreen = ({ navigation }) => {
 
       // Change password if provided
       if (passwordData.current_password && passwordData.new_password) {
-        if (!validatePassword()) {
-          setLoading(false);
-          return;
-        }
-
         await profileService.changePassword(
           passwordData.current_password,
           passwordData.new_password
@@ -181,16 +191,25 @@ const EditProfileScreen = ({ navigation }) => {
         },
       ]);
     } catch (error) {
+      console.error("Error updating profile:", error);
       let errorMessage = "Failed to update profile. Please try again.";
 
       if (error.response?.data) {
         const data = error.response.data;
+        console.log("Error response data:", data);
+
         if (data.email) {
           errorMessage = Array.isArray(data.email) ? data.email[0] : data.email;
+        } else if (data.first_name) {
+          errorMessage = Array.isArray(data.first_name) ? data.first_name[0] : data.first_name;
+        } else if (data.last_name) {
+          errorMessage = Array.isArray(data.last_name) ? data.last_name[0] : data.last_name;
         } else if (data.error) {
           errorMessage = data.error;
         } else if (data.detail) {
           errorMessage = data.detail;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
         }
       }
 

@@ -27,6 +27,13 @@ import PrivacySecurityScreen from '../screens/PrivacySecurityScreen';
 import HelpSupportScreen from '../screens/HelpSupportScreen';
 import AboutScreen from '../screens/AboutScreen';
 import QRScannerScreen from '../screens/QRScannerScreen';
+import SessionAttachmentsScreen from '../screens/SessionAttachmentsScreen';
+import QuickActionAttachmentsScreen from '../screens/QuickActionAttachmentsScreen';
+import PaymentScreen from '../screens/PaymentScreen';
+import PaymentStatusScreen from '../screens/PaymentStatusScreen';
+import CardPaymentWebView from '../screens/CardPaymentWebView';
+import EventRegistrationScreen from '../screens/EventRegistrationScreen';
+import LiveStreamsScreen from '../screens/LiveStreamsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -207,6 +214,11 @@ const MainStack = () => {
         options={{ title: 'Browse Events' }}
       />
       <Stack.Screen
+        name="EventRegistration"
+        component={EventRegistrationScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
         options={({ route }) => ({
@@ -250,6 +262,11 @@ const MainStack = () => {
         options={{ title: 'Event Agenda' }}
       />
       <Stack.Screen
+        name="LiveStreams"
+        component={LiveStreamsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Speakers"
         component={SpeakersScreen}
         options={{ title: 'Event Speakers' }}
@@ -258,6 +275,31 @@ const MainStack = () => {
         name="Maps"
         component={MapsScreen}
         options={{ title: 'Location & Maps' }}
+      />
+      <Stack.Screen
+        name="SessionAttachments"
+        component={SessionAttachmentsScreen}
+        options={{ title: 'Session Attachments' }}
+      />
+      <Stack.Screen
+        name="QuickActionAttachments"
+        component={QuickActionAttachmentsScreen}
+        options={{ title: 'Quick Action Attachments' }}
+      />
+      <Stack.Screen
+        name="Payment"
+        component={PaymentScreen}
+        options={{ title: 'Payment' }}
+      />
+      <Stack.Screen
+        name="PaymentStatus"
+        component={PaymentStatusScreen}
+        options={{ title: 'Payment Status', headerBackVisible: false }}
+      />
+      <Stack.Screen
+        name="CardPaymentWebView"
+        component={CardPaymentWebView}
+        options={{ title: 'Payment Gateway', headerShown: false }}
       />
     </Stack.Navigator>
   );

@@ -116,6 +116,19 @@ const QRScanner = ({ onQRScanned, onClose, isVisible = true }) => {
 
   const parseQRCode = (data) => {
     try {
+      // Check if it's a check-in URL for entry pass from the organizer's QR code
+      if (data.includes('/api/events/') && data.includes('/check-in')) {
+        const match = data.match(/\/api\/events\/(\d+)\/check-in/);
+        if (match) {
+          console.log('Detected entry pass check-in QR code for event:', match[1]);
+          return {
+            type: 'entry_pass',
+            eventId: match[1],
+            originalData: data
+          };
+        }
+      }
+
       // Check if it's a registration URL from Django
       if (data.includes('/register/')) {
         const match = data.match(/\/register\/(\d+)\//);

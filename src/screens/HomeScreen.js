@@ -117,36 +117,40 @@ const HomeScreen = ({ navigation }) => {
         {/* Top Row */}
         <View style={styles.gridRow}>
           <QuickActionCard
-            icon={<EventsIcon size={32} color="#FFFFFF" />}
+            icon={<EventsIcon size={32} color={theme.colors.primary} />}
             title="Browse Events"
             subtitle="Find events near you"
             onPress={() => navigation.navigate("BrowseEvents")}
+            borderColor={theme.colors.primary}
           />
 
           <QuickActionCard
-            icon={<CalendarIcon size={32} color="#FFFFFF" />}
+            icon={<CalendarIcon size={32} color={theme.colors.secondary} />}
             title="My Events"
             subtitle="See registrations"
             onPress={() => navigation.navigate("MyEvents")}
+            borderColor={theme.colors.secondary}
           />
         </View>
 
         {/* Bottom Row */}
         <View style={styles.gridRow}>
           <QuickActionCard
-            icon={<QRScanIcon size={32} color="#FFFFFF" />}
+            icon={<QRScanIcon size={32} color={theme.colors.accent} />}
             title="Scan QR Code"
             subtitle="Join event instantly"
             onPress={handleQRScan}
             isPrimary={false}
             backgroundColor={theme.colors.surfaceVariant}
+            borderColor={theme.colors.accent}
           />
 
           <QuickActionCard
-            icon={<ProfileIcon size={32} color="#FFFFFF" />}
+            icon={<ProfileIcon size={32} color={theme.colors.tertiary} />}
             title="My Profile"
             subtitle="Update info"
             onPress={() => navigation.navigate("Profile")}
+            borderColor={theme.colors.tertiary}
           />
         </View>
       </View>
@@ -177,11 +181,11 @@ const HomeScreen = ({ navigation }) => {
             Upcoming Events
           </Text>
           <View style={styles.emptyState}>
-            <QRScanIcon size={64} color="#9CA3AF" />
-            <Text style={[styles.emptyTitle, { color: "#9CA3AF" }]}>
+            <QRScanIcon size={64} color={theme.colors.onSurfaceVariant} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>
               No Upcoming Events
             </Text>
-            <Text style={[styles.emptySubtitle, { color: "#9CA3AF" }]}>
+            <Text style={[styles.emptySubtitle, { color: theme.colors.onSurfaceVariant }]}>
               Scan a QR code or browse events to register for upcoming events!
             </Text>
           </View>
@@ -214,11 +218,11 @@ const HomeScreen = ({ navigation }) => {
 
         {events && Array.isArray(events) && events.length > 3 && (
           <QuickActionCard
-            icon={<EventsIcon size={24} color="#FFFFFF" />}
+            icon={<EventsIcon size={24} color={theme.colors.primary} />}
             title="View All My Events"
             subtitle={`${events.length - 3} more registered events`}
             onPress={() => navigation.navigate("MyEvents")}
-            backgroundColor="#F0F9FF"
+            backgroundColor={theme.colors.surfaceVariant}
           />
         )}
       </View>

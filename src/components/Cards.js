@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -123,7 +123,12 @@ export const WelcomeCard = ({ userName, onPress, nextEvent }) => {
     <BaseCard
       style={[
         styles.welcomeCard,
-        { backgroundColor: theme.colors.surfaceVariant, ...theme.shadows.md },
+        {
+          backgroundColor: theme.colors.surfaceVariant,
+          borderColor: theme.colors.primary,
+          borderWidth: 2,
+          ...theme.shadows.md
+        },
       ]}
       onPress={onPress}
     >
@@ -165,6 +170,7 @@ export const QuickActionCard = ({
   onPress,
   backgroundColor,
   textColor,
+  borderColor,
   isPrimary = false,
 }) => {
   const { theme } = useTheme();
@@ -174,6 +180,8 @@ export const QuickActionCard = ({
     (isPrimary ? theme.colors.primary : theme.colors.surfaceVariant);
   const defaultTextColor =
     textColor || (isPrimary ? theme.colors.onPrimary : theme.colors.onSurface);
+  const defaultBorderColor = borderColor || theme.colors.border;
+
   const cardStyle = isPrimary
     ? [
         styles.primaryActionCard,
@@ -183,7 +191,8 @@ export const QuickActionCard = ({
         styles.secondaryActionCard,
         {
           backgroundColor: defaultBgColor,
-          borderColor: theme.colors.border,
+          borderColor: defaultBorderColor,
+          borderWidth: 2,
           ...theme.shadows.sm,
         },
       ];
@@ -235,10 +244,36 @@ export const EventCard = ({
   event,
   onJoin,
   onLearnMore,
+  onCompletePayment,
   loading = false,
   isRegistered = false,
+  registrationStatus = null,
 }) => {
   const { theme } = useTheme();
+  const [timeRemaining, setTimeRemaining] = useState(event.hold_time_remaining || 0);
+
+  // Update timer every second for held registrations
+  useEffect(() => {
+    if (registrationStatus === 'hold' && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [registrationStatus, timeRemaining]);
+
+  const formatTimeRemaining = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const formatFriendlyDate = (dateString) => {
     const date = new Date(dateString);
@@ -329,15 +364,47 @@ export const EventCard = ({
 
       {/* Event Header */}
       <View style={styles.eventHeader}>
-        <View
-          style={[
-            styles.eventCategory,
-            { backgroundColor: theme.colors.surfaceVariant },
-          ]}
-        >
-          <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
-            {event.category || "Event"}
-          </Text>
+        <View style={styles.categoryRow}>
+          <View
+            style={[
+              styles.eventCategory,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+          >
+            <Text style={[styles.categoryText, { color: theme.colors.primary }]}>
+              {event.category || "Event"}
+            </Text>
+          </View>
+          {/* Registration Status Badge */}
+          {registrationStatus && (
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor:
+                    registrationStatus === 'hold' ? '#FEF3C7' :  // Yellow for hold
+                    registrationStatus === 'pending' ? '#E5E7EB' :  // Gray for pending
+                    '#D1FAE5',  // Green for confirmed
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  {
+                    color:
+                      registrationStatus === 'hold' ? '#F59E0B' :  // Orange for hold
+                      registrationStatus === 'pending' ? '#6B7280' :  // Gray for pending
+                      '#047857',  // Green for confirmed
+                  },
+                ]}
+              >
+                {registrationStatus === 'hold' ? 'Registration On Hold' :
+                 registrationStatus === 'pending' ? 'Pending Approval' :
+                 'Registered'}
+              </Text>
+            </View>
+          )}
         </View>
         <Text
           style={[styles.eventTitle, { color: theme.colors.onSurface }]}
@@ -376,53 +443,131 @@ export const EventCard = ({
 
       {/* Event Actions */}
       <View style={styles.eventActions}>
-        <TouchableOpacity
-          style={[
-            styles.secondaryButton,
-            {
-              backgroundColor: theme.colors.surfaceVariant,
-              borderColor: theme.colors.border,
-            },
-            isRegistered && { flex: 1 }, // Take full width when registered
-          ]}
-          onPress={onLearnMore}
-          disabled={loading}
-        >
-          <Text
-            style={[
-              styles.secondaryButtonText,
-              { color: theme.colors.onSurface },
-            ]}
-          >
-            {isRegistered ? "View Event Details" : "Learn More"}
-          </Text>
-        </TouchableOpacity>
-
-        {!isRegistered && (
-          <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              { backgroundColor: theme.colors.primary },
-              availabilityInfo.urgent && {
-                backgroundColor: theme.colors.warning,
-              },
-              loading && {
-                backgroundColor: theme.colors.disabled,
-                opacity: 0.6,
-              },
-            ]}
-            onPress={onJoin}
-            disabled={loading || availabilityInfo.text === "Event Full"}
-          >
-            <Text
+        {/* Show different layouts based on registration status */}
+        {registrationStatus === 'hold' && timeRemaining > 0 ? (
+          <View style={styles.actionsColumn}>
+            {/* View Event Details Button */}
+            <TouchableOpacity
               style={[
-                styles.primaryButtonText,
-                { color: theme.colors.onPrimary },
+                styles.secondaryButton,
+                styles.fullWidthButton,
+                {
+                  backgroundColor: theme.colors.surfaceVariant,
+                  borderColor: theme.colors.border,
+                },
               ]}
+              onPress={onLearnMore}
+              disabled={loading}
             >
-              {availabilityInfo.text === "Event Full" ? "Full" : "Join Event"}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.secondaryButtonText,
+                  { color: theme.colors.onSurface },
+                ]}
+              >
+                View Event Details
+              </Text>
+            </TouchableOpacity>
+
+            {/* Complete Payment Button */}
+            <TouchableOpacity
+              style={[
+                styles.primaryButton,
+                styles.fullWidthButton,
+                {
+                  backgroundColor: '#F59E0B', // Orange/warning color
+                  marginTop: 8,
+                },
+              ]}
+              onPress={() => onCompletePayment ? onCompletePayment(event) : onJoin()}
+              disabled={loading}
+            >
+              <View style={styles.buttonContent}>
+                <ClockIcon size={16} color="#FFFFFF" />
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: '#FFFFFF', marginLeft: 6 },
+                  ]}
+                >
+                  Complete Payment ({formatTimeRemaining(timeRemaining)})
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[
+                styles.secondaryButton,
+                {
+                  backgroundColor: theme.colors.surfaceVariant,
+                  borderColor: theme.colors.border,
+                  flex: 1, // Equal width with other button
+                },
+              ]}
+              onPress={onLearnMore}
+              disabled={loading}
+            >
+              <Text
+                style={[
+                  styles.secondaryButtonText,
+                  { color: theme.colors.onSurface },
+                ]}
+              >
+                {isRegistered ? "View Event Details" : "View Event"}
+              </Text>
+            </TouchableOpacity>
+
+            {registrationStatus === 'pending' ? (
+              <View
+                style={[
+                  styles.primaryButton,
+                  {
+                    backgroundColor: '#6B7280', // Gray for pending
+                    flex: 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
+                  Pending Approval
+                </Text>
+              </View>
+            ) : !isRegistered && (
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  {
+                    backgroundColor: theme.colors.primary,
+                    flex: 1, // Equal width with other button
+                  },
+                  availabilityInfo.urgent && {
+                    backgroundColor: theme.colors.warning,
+                  },
+                  loading && {
+                    backgroundColor: theme.colors.disabled,
+                    opacity: 0.6,
+                  },
+                ]}
+                onPress={onJoin}
+                disabled={loading || availabilityInfo.text === "Event Full"}
+              >
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
+                  {availabilityInfo.text === "Event Full" ? "Full" : "Get Entry Pass"}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
     </BaseCard>
@@ -653,17 +798,33 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
+  categoryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 8,
+  },
+
   eventCategory: {
-    alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    marginBottom: 8,
   },
 
   categoryText: {
     fontSize: 12,
     fontWeight: "500",
+  },
+
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
 
   eventTitle: {
@@ -732,6 +893,32 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 14,
     fontWeight: "600",
+  },
+
+  urgentButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  timerText: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+
+  actionsColumn: {
+    flexDirection: 'column',
+    width: '100%',
+  },
+
+  fullWidthButton: {
+    width: '100%',
   },
 
   // Loading Card Styles

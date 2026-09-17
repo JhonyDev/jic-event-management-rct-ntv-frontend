@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "react-native-frontend",
-    "slug": "react-native-frontend",
+    "name": "Multiverso Events",
+    "slug": "multiverso-events",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

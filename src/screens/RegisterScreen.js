@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Text,
   TextInput as RNTextInput,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -170,18 +171,11 @@ const RegisterScreen = ({ navigation }) => {
               ]}
             >
               <View style={styles.logoContainer}>
-                <View
-                  style={[
-                    styles.logoCircle,
-                    { backgroundColor: theme.colors.surface },
-                  ]}
-                >
-                  <Icon
-                    name="calendar-check"
-                    size={32}
-                    color={theme.colors.primary}
-                  />
-                </View>
+                <Image
+                  source={require("../../assets/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
               </View>
 
               <Text
@@ -190,15 +184,7 @@ const RegisterScreen = ({ navigation }) => {
                   { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
                 ]}
               >
-                JIC
-              </Text>
-              <Text
-                style={[
-                  styles.companyTagline,
-                  { color: isDarkMode ? theme.colors.onBackground : "#FFFFFF" },
-                ]}
-              >
-                Event Management
+                Multiverso
               </Text>
               <Text
                 style={[
@@ -210,7 +196,7 @@ const RegisterScreen = ({ navigation }) => {
                   },
                 ]}
               >
-                Platform
+                Event Management
               </Text>
             </Animated.View>
 
@@ -303,15 +289,26 @@ const RegisterScreen = ({ navigation }) => {
                 </View>
 
                 <View style={[styles.inputContainer, styles.halfWidth]}>
-                  <Text style={styles.inputLabel}>Last Name</Text>
+                  <Text
+                    style={[
+                      styles.inputLabel,
+                      { color: theme.colors.onSurface },
+                    ]}
+                  >
+                    Last Name
+                  </Text>
                   <View
                     style={[
                       styles.inputWrapper,
-                      errors.lastName && styles.inputError,
+                      {
+                        borderColor: theme.colors.border,
+                        backgroundColor: theme.colors.surfaceVariant,
+                      },
+                      errors.lastName && { borderColor: theme.colors.error },
                     ]}
                   >
                     <RNTextInput
-                      style={styles.input}
+                      style={[styles.input, { color: theme.colors.onSurface }]}
                       value={lastName}
                       onChangeText={(text) => {
                         setLastName(text);
@@ -319,52 +316,78 @@ const RegisterScreen = ({ navigation }) => {
                           setErrors({ ...errors, lastName: null });
                       }}
                       placeholder="Doe"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor={theme.colors.onSurfaceVariant}
                       autoCapitalize="words"
                     />
                   </View>
                   {errors.lastName && (
-                    <Text style={styles.errorText}>{errors.lastName}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                      {errors.lastName}
+                    </Text>
                   )}
                 </View>
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text
+                  style={[
+                    styles.inputLabel,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  Email
+                </Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    errors.email && styles.inputError,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                    errors.email && { borderColor: theme.colors.error },
                   ]}
                 >
                   <RNTextInput
-                    style={styles.input}
+                    style={[styles.input, { color: theme.colors.onSurface }]}
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
                       if (errors.email) setErrors({ ...errors, email: null });
                     }}
                     placeholder="john@example.com"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.onSurfaceVariant}
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
                 </View>
                 {errors.email && (
-                  <Text style={styles.errorText}>{errors.email}</Text>
+                  <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    {errors.email}
+                  </Text>
                 )}
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text
+                  style={[
+                    styles.inputLabel,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  Password
+                </Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    errors.password && styles.inputError,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                    errors.password && { borderColor: theme.colors.error },
                   ]}
                 >
                   <RNTextInput
-                    style={styles.input}
+                    style={[styles.input, { color: theme.colors.onSurface }]}
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
@@ -372,7 +395,7 @@ const RegisterScreen = ({ navigation }) => {
                         setErrors({ ...errors, password: null });
                     }}
                     placeholder="••••••••"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.onSurfaceVariant}
                     secureTextEntry={!showPassword}
                   />
                   <TouchableOpacity
@@ -380,27 +403,40 @@ const RegisterScreen = ({ navigation }) => {
                     style={styles.eyeIcon}
                   >
                     {showPassword ? (
-                      <EyeOffIcon size={20} />
+                      <EyeOffIcon size={20} color={theme.colors.onSurfaceVariant} />
                     ) : (
-                      <EyeIcon size={20} />
+                      <EyeIcon size={20} color={theme.colors.onSurfaceVariant} />
                     )}
                   </TouchableOpacity>
                 </View>
                 {errors.password && (
-                  <Text style={styles.errorText}>{errors.password}</Text>
+                  <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    {errors.password}
+                  </Text>
                 )}
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <Text
+                  style={[
+                    styles.inputLabel,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  Confirm Password
+                </Text>
                 <View
                   style={[
                     styles.inputWrapper,
-                    errors.confirmPassword && styles.inputError,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                    errors.confirmPassword && { borderColor: theme.colors.error },
                   ]}
                 >
                   <RNTextInput
-                    style={styles.input}
+                    style={[styles.input, { color: theme.colors.onSurface }]}
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);
@@ -408,7 +444,7 @@ const RegisterScreen = ({ navigation }) => {
                         setErrors({ ...errors, confirmPassword: null });
                     }}
                     placeholder="••••••••"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.colors.onSurfaceVariant}
                     secureTextEntry={!showConfirmPassword}
                   />
                   <TouchableOpacity
@@ -416,19 +452,24 @@ const RegisterScreen = ({ navigation }) => {
                     style={styles.eyeIcon}
                   >
                     {showConfirmPassword ? (
-                      <EyeOffIcon size={20} />
+                      <EyeOffIcon size={20} color={theme.colors.onSurfaceVariant} />
                     ) : (
-                      <EyeIcon size={20} />
+                      <EyeIcon size={20} color={theme.colors.onSurfaceVariant} />
                     )}
                   </TouchableOpacity>
                 </View>
                 {errors.confirmPassword && (
-                  <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                  <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                    {errors.confirmPassword}
+                  </Text>
                 )}
               </View>
 
               <TouchableOpacity
-                style={styles.signUpButton}
+                style={[
+                  styles.signUpButton,
+                  { backgroundColor: theme.colors.primary },
+                ]}
                 onPress={handleRegister}
                 disabled={loading}
                 activeOpacity={0.8}
@@ -438,10 +479,18 @@ const RegisterScreen = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              <Text style={styles.footerText}>
+              <Text
+                style={[
+                  styles.footerText,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
                 Already have an account?
                 <Text
-                  style={styles.footerLink}
+                  style={[
+                    styles.footerLink,
+                    { color: theme.colors.primary },
+                  ]}
                   onPress={() => navigation.goBack()}
                 >
                   {" "}
@@ -476,23 +525,11 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   logoContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  logo: {
+    width: 100,
+    height: 100,
   },
   companyName: {
     fontSize: 36,

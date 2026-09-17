@@ -121,8 +121,9 @@ const QRScannerScreen = ({ navigation, route }) => {
       setIsProcessing(true);
       console.log('Processing QR data:', qrData);
 
-      // Check if this is a check-in QR code
-      if (qrData.type === 'checkin_url') {
+      // Check if this is a check-in QR code for entry pass
+      if (qrData.type === 'entry_pass') {
+        console.log('Entry pass QR code detected, initiating check-in...');
         await handleCheckIn(qrData.eventId);
         return;
       }
@@ -254,32 +255,41 @@ const QRScannerScreen = ({ navigation, route }) => {
 
   const handleCheckIn = async (eventId) => {
     try {
-      // Get user token and user info
+      // Get user token and user info - Note: stored as 'user' not 'userInfo'
       const token = await AsyncStorage.getItem('authToken');
-      const userInfoStr = await AsyncStorage.getItem('userInfo');
+      const userStr = await AsyncStorage.getItem('user');
 
-      if (!token || !userInfoStr) {
+      console.log('CheckIn - Auth token exists:', !!token);
+      console.log('CheckIn - User info exists:', !!userStr);
+
+      if (!token || !userStr) {
+        console.log('Authentication missing - token:', token, 'user:', userStr);
         Alert.alert(
           'Authentication Required',
           'Please log in to check in for events.',
           [
             {
-              text: 'Login',
-              onPress: () => navigation.navigate('Login'),
+              text: 'OK',
+              onPress: () => {
+                setIsProcessing(false);
+                navigation.goBack();
+              },
             },
           ]
         );
+        setIsProcessing(false);
         return;
       }
 
-      const userInfo = JSON.parse(userInfoStr);
+      const userInfo = JSON.parse(userStr);
+      console.log('CheckIn - User info parsed:', userInfo);
       const userId = userInfo.id || userInfo.user_id;
 
       if (!userId) {
         throw new Error('User ID not found. Please log in again.');
       }
 
-      // Send check-in request
+      // Send check-in request for entry pass
       const response = await api.post(
         `/events/${eventId}/check_in/`,
         { user_id: userId }
@@ -287,8 +297,8 @@ const QRScannerScreen = ({ navigation, route }) => {
 
       if (response.data.success) {
         Alert.alert(
-          '✅ Check-In Successful!',
-          `You have been checked in for "${response.data.attendee.event}".\n\nPlease proceed to the entrance to collect your entry pass.`,
+          '✅ Entry Pass Ready!',
+          `Your details have been successfully sent to the organizer.\n\nEvent: ${response.data.attendee.event}\nName: ${response.data.attendee.name}\n\nPlease proceed to the entry pass counter to collect your badge.`,
           [
             {
               text: 'OK',
@@ -298,9 +308,9 @@ const QRScannerScreen = ({ navigation, route }) => {
         );
       }
     } catch (error) {
-      console.error('Check-in error:', error);
+      console.error('Entry pass check-in error:', error);
 
-      let errorMessage = 'Check-in failed. Please try again.';
+      let errorMessage = 'Entry pass check-in failed. Please try again.';
 
       if (error.response) {
         if (error.response.status === 404) {
@@ -317,7 +327,7 @@ const QRScannerScreen = ({ navigation, route }) => {
       }
 
       Alert.alert(
-        'Check-In Failed',
+        'Entry Pass Check-In Failed',
         errorMessage,
         [
           {
@@ -418,12 +428,13 @@ const QRScannerScreen = ({ navigation, route }) => {
 
   const parseQRCode = (data) => {
     try {
-      // Check if it's a check-in URL from the organizer's QR code
+      // Check if it's a check-in URL from the organizer's QR code for entry pass
       if (data.includes('/api/events/') && data.includes('/check-in')) {
         const match = data.match(/\/api\/events\/(\d+)\/check-in/);
         if (match) {
+          console.log('Detected entry pass check-in QR code for event:', match[1]);
           return {
-            type: 'checkin_url',
+            type: 'entry_pass',
             eventId: match[1],
             originalData: data
           };
@@ -556,7 +567,7 @@ const QRScannerScreen = ({ navigation, route }) => {
             style={styles.exampleButton}
             onPress={() => setManualInput('http://165.232.126.196:8000/api/events/1/check-in')}
           >
-            <Text style={styles.exampleText}>Check-in: /api/events/1/check-in</Text>
+            <Text style={styles.exampleText}>Entry Pass: /api/events/1/check-in</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.exampleButton}

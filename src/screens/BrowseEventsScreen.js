@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   EventCard,
   LoadingCard,
@@ -26,6 +27,15 @@ const BrowseEventsScreen = ({ navigation }) => {
   useEffect(() => {
     fetchBrowseableEvents();
   }, []);
+
+  // Refresh data when screen comes back into focus (e.g., after payment)
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) {
+        fetchBrowseableEvents();
+      }
+    }, [loading])
+  );
 
   const fetchBrowseableEvents = async () => {
     try {
@@ -57,16 +67,42 @@ const BrowseEventsScreen = ({ navigation }) => {
     });
   };
 
-  const handleJoinEvent = async (eventId) => {
-    try {
-      await eventService.registerForEvent(eventId);
-      Alert.alert("Success", "You have successfully registered for this event!");
-      // Refresh the events list to update registration status
-      await fetchBrowseableEvents();
-    } catch (error) {
-      console.error("Error registering for event:", error);
-      Alert.alert("Error", "Failed to register for event. Please try again.");
+  const handleJoinEvent = (eventId) => {
+    // Navigate to event registration screen
+    navigation.navigate("EventRegistration", {
+      eventId: eventId,
+    });
+  };
+
+  const handleCompletePayment = (event) => {
+    // Navigate to payment screen for held registrations
+    // Pass eventId and a flag to indicate this is for a held registration
+    // Calculate total amount from registration data
+    let totalAmount = parseFloat(event.registration_fee || 0);
+
+    // Add registration type fee if present
+    if (event.registration_type_amount) {
+      totalAmount += parseFloat(event.registration_type_amount);
     }
+
+    // Add workshop fee if present
+    if (event.workshop_fee) {
+      totalAmount += parseFloat(event.workshop_fee);
+    }
+
+    // Use the total_amount from backend if available (most accurate)
+    if (event.total_amount) {
+      totalAmount = parseFloat(event.total_amount);
+    }
+
+    navigation.navigate("Payment", {
+      type: "event_registration",
+      eventId: event.id,  // For existing held registrations
+      title: event.title,
+      amount: totalAmount,
+      paymentMethods: event.payment_methods || [],
+      isHeldRegistration: true,  // Flag to indicate registration already exists
+    });
   };
 
   if (loading) {
@@ -115,7 +151,9 @@ const BrowseEventsScreen = ({ navigation }) => {
                 event={event}
                 onJoin={() => handleJoinEvent(event.id)}
                 onLearnMore={() => handleEventPress(event.id)}
+                onCompletePayment={handleCompletePayment}
                 isRegistered={event.is_registered}
+                registrationStatus={event.registration_status}
                 theme={theme}
                 showJoinButton={!event.is_registered}
               />

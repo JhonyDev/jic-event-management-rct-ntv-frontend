@@ -20,6 +20,17 @@ import {
   AgendaIcon,
   SpeakersIcon,
   MapIcon,
+  FileTextIcon,
+  LinkIcon,
+  ExternalLinkIcon,
+  FolderIcon,
+  GlobeIcon,
+  BookIcon,
+  PlayCircleIcon,
+  BoxIcon,
+  LayoutIcon,
+  CreditCardIcon,
+  DollarIcon,
 } from '../components/SvgIcons';
 import eventService from '../services/eventService';
 import { useTheme } from '../context/ThemeContext';
@@ -30,6 +41,7 @@ const EventDetailScreen = ({ route, navigation }) => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [quickActions, setQuickActions] = useState([]);
 
   useEffect(() => {
     fetchEventDetails();
@@ -39,6 +51,15 @@ const EventDetailScreen = ({ route, navigation }) => {
     try {
       const data = await eventService.getEvent(eventId);
       setEvent(data);
+
+      // Fetch quick actions
+      try {
+        const quickActionsData = await eventService.getQuickActions(eventId);
+        setQuickActions(quickActionsData || []);
+      } catch (quickActionsError) {
+        console.log('Quick actions not available:', quickActionsError);
+        setQuickActions([]);
+      }
     } catch (error) {
       console.error('Error fetching event details:', error);
       Alert.alert('Error', 'Failed to load event details');
@@ -87,6 +108,47 @@ const EventDetailScreen = ({ route, navigation }) => {
 
   const handleMapsPress = () => {
     navigation.navigate('Maps', { event });
+  };
+
+  const getIconForType = (iconType) => {
+    // Map Django icon values to React Native icons
+    const iconMap = {
+      'download': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'view': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'document': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'video': <PlayCircleIcon size={32} color={theme.colors.accent} />,
+      'image': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'presentation': <LayoutIcon size={32} color={theme.colors.primary} />,
+      'link': <LinkIcon size={32} color={theme.colors.secondary} />,
+      'info': <InfoCircleIcon size={32} color={theme.colors.primary} />,
+      'calendar': <CalendarIcon size={32} color={theme.colors.primary} />,
+      'map': <MapIcon size={32} color={theme.colors.error} />,
+      'qrcode': <BoxIcon size={32} color={theme.colors.tertiary} />,
+      'ticket': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'certificate': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'badge': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'folder': <FolderIcon size={32} color={theme.colors.tertiary} />,
+      'poster': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'banner': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'research_paper': <BookIcon size={32} color={theme.colors.secondary} />,
+      // Legacy support for old icon types
+      'file-text': <FileTextIcon size={32} color={theme.colors.primary} />,
+      'external-link': <ExternalLinkIcon size={32} color={theme.colors.accent} />,
+      'globe': <GlobeIcon size={32} color={theme.colors.primary} />,
+      'play-circle': <PlayCircleIcon size={32} color={theme.colors.accent} />,
+      'box': <BoxIcon size={32} color={theme.colors.tertiary} />,
+      'layout': <LayoutIcon size={32} color={theme.colors.primary} />,
+    };
+    return iconMap[iconType] || <FileTextIcon size={32} color={theme.colors.primary} />;
+  };
+
+  const handleQuickActionPress = (quickAction) => {
+    navigation.navigate('QuickActionAttachments', {
+      quickActionId: quickAction.id,
+      quickActionTitle: quickAction.title,
+      supportingMaterials: quickAction.supporting_materials,
+      eventId: eventId,
+    });
   };
 
   const handleUnregister = () => {
@@ -186,6 +248,16 @@ const EventDetailScreen = ({ route, navigation }) => {
                 {event.registrations_count} / {event.max_attendees} attendees
               </Text>
             </View>
+
+            {/* Payment Information */}
+            {event.is_paid_event && (
+              <View style={[styles.paymentBadge, { backgroundColor: theme.colors.primaryContainer }]}>
+                <CreditCardIcon size={20} color={theme.colors.primary} />
+                <Text style={[styles.paymentText, { color: theme.colors.primary }]}>
+                  Paid Event - PKR {event.registration_fee}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -230,8 +302,46 @@ const EventDetailScreen = ({ route, navigation }) => {
           </View>
         </View>
 
+        {/* Quick Actions Section */}
+        {quickActions.length > 0 && (
+          <View style={styles.actionCardsContainer}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>Quick Actions</Text>
+
+            <View style={styles.cardsGrid}>
+              {quickActions.map((quickAction, index) => {
+                // Pair items in rows (always use grid row layout)
+                if (index % 2 === 0) {
+                  return (
+                    <View key={quickAction.id} style={styles.gridRow}>
+                      <QuickActionCard
+                        icon={getIconForType(quickAction.icon_type)}
+                        title={quickAction.title}
+                        subtitle={quickAction.description || 'View attachments'}
+                        onPress={() => handleQuickActionPress(quickAction)}
+                      />
+                      {quickActions[index + 1] ? (
+                        <QuickActionCard
+                          icon={getIconForType(quickActions[index + 1].icon_type)}
+                          title={quickActions[index + 1].title}
+                          subtitle={quickActions[index + 1].description || 'View attachments'}
+                          onPress={() => handleQuickActionPress(quickActions[index + 1])}
+                        />
+                      ) : (
+                        // Empty placeholder to maintain grid layout
+                        <View style={{ flex: 1 }} />
+                      )}
+                    </View>
+                  );
+                }
+
+                return null;
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Registration Status */}
-        {event.is_registered && (
+        {event.is_registered ? (
           <View style={styles.registrationStatus}>
             <View style={styles.registeredBadge}>
               <Text style={styles.registeredText}>✓ You are registered for this event</Text>
@@ -242,6 +352,16 @@ const EventDetailScreen = ({ route, navigation }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.unregisterButtonText}>Leave Event</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.registrationStatus}>
+            <TouchableOpacity
+              style={[styles.getEntryPassButton, { backgroundColor: theme.colors.primary }]}
+              onPress={() => navigation.navigate("EventRegistration", { eventId: event.id })}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.getEntryPassButtonText}>Get Entry Pass</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -348,6 +468,10 @@ const styles = StyleSheet.create({
     gap: 15,
   },
 
+  fullWidthRow: {
+    flexDirection: 'row',
+  },
+
   registrationStatus: {
     marginBottom: 24,
   },
@@ -381,6 +505,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  getEntryPassButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  getEntryPassButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
   organizerSection: {
     marginBottom: 24,
   },
@@ -406,6 +543,21 @@ const styles = StyleSheet.create({
   organizerEmail: {
     fontSize: 14,
     color: '#6B7280',
+  },
+
+  paymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+
+  paymentText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
